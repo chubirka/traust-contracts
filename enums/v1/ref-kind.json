@@ -1,6 +1,6 @@
 {
   "name": "ref_kind",
-  "source_schema": "report.schema.json#/properties/metadata/properties/ref_kind",
+  "source_schema": "report.schema.json#/$defs/metadata/properties/ref_kind",
   "description": "Kind of git reference being audited (branch, tag, default branch, or dist-git stream).",
   "values": [
     "branch",
@@ -10,10 +10,10 @@
   ],
   "note": "Shared across audit schemas; 'stream' added in harness v0.140.0 for dist-git release stream support",
   "used_in_schemas": [
-    "report.schema.json",
     "cloud-config-audit.schema.json",
     "cloud-config-findings-current.schema.json",
-    "isolation-review.schema.json",
-    "vuln-findings.schema.json"
+    "corpus-registry.schema.json",
+    "report.schema.json",
+    "verification.schema.json"
   ]
 }

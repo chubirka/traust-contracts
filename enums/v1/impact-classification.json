@@ -1,6 +1,6 @@
 {
   "name": "impact_classification",
-  "source_schema": "impact-analysis.schema.json#/$defs/classification",
+  "source_schema": "impact-analysis.schema.json#/$defs/repo_entry/properties/classification",
   "description": "Impact analysis repo classification.",
   "values": [
     "affected",
@@ -11,6 +11,9 @@
     "inconclusive"
   ],
   "used_in_schemas": [
-    "impact-analysis.schema.json"
+    "adapter-result.schema.json",
+    "impact-analysis.schema.json",
+    "report.schema.json",
+    "validation.schema.json"
   ]
 }

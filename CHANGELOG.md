@@ -2,6 +2,36 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.37.1]
+
+### Fixed
+
+- **Enum registry metadata now matches the schemas.** `source_schema` in
+  `threat-impact`, `threat-likelihood` and `threat-status` named
+  `threat-register.schema.json`, which does not exist; they now point at
+  `threat-model.schema.json#/$defs/threat/properties/*`. `impact-classification`
+  and `ref-kind` pointed at paths that no longer resolve and now point at
+  `impact-analysis.schema.json#/$defs/repo_entry/properties/classification` and
+  `report.schema.json#/$defs/metadata/properties/ref_kind`.
+- `used_in_schemas` is regenerated for every registered enum. Among the
+  corrections, `verdict` no longer claims `verification.schema.json` (which
+  defines its own, different `verdict`), and `ref-kind` no longer claims
+  `isolation-review` or `vuln-findings`, neither of which carries `ref_kind`.
+- `repo-scope-path` declares `"schema_enforced": false`: its values are
+  documented on `report.schema.json#/$defs/location/properties/path` but are
+  not a schema `enum`.
+
+### Added
+
+- `ci/enum_registry.py` derives `used_in_schemas` from the schemas (a schema
+  uses an enum when validating it can reach a site with the enum's exact
+  value set, following `$ref` chains across files) and checks every
+  registered file: `source_schema` resolves to an enum with the same values,
+  names and value sets are unique, and `used_in_schemas` equals the derived
+  list. `--write` regenerates the lists.
+- `tests/test_enum_registry.py` fails on any registry metadata drift and, for
+  now, warns about schema enums that have no `enums/v1` file.
+
 ## [0.37.0]
 
 ### Changed

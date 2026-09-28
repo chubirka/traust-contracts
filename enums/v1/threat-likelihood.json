@@ -1,6 +1,6 @@
 {
   "name": "threat-likelihood",
-  "source_schema": "threat-register.schema.json#/$defs/threat/properties/likelihood",
+  "source_schema": "threat-model.schema.json#/$defs/threat/properties/likelihood",
   "description": "How often this threat is expected to be driven, on an ordinal scale.",
   "values": [
     "very_rare",
@@ -11,6 +11,6 @@
   ],
   "note": "Ordinal only. The register multiplies its weight by the impact weight to rank; the product is an ordering, never a calibrated probability.",
   "used_in_schemas": [
-    "threat-register.schema.json"
+    "threat-model.schema.json"
   ]
 }

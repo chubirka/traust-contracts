@@ -9,6 +9,9 @@
     "claimed"
   ],
   "used_in_schemas": [
-    "cloud-config-findings-current.schema.json"
+    "adapter-result.schema.json",
+    "cloud-config-findings-current.schema.json",
+    "report.schema.json",
+    "validation.schema.json"
   ]
 }

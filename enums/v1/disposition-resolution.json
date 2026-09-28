@@ -11,8 +11,10 @@
     "regression_introduced"
   ],
   "used_in_schemas": [
+    "adapter-result.schema.json",
     "cloud-config-findings-current.schema.json",
-    "remediation.schema.json",
-    "layer.schema.json"
+    "layer.schema.json",
+    "report.schema.json",
+    "validation.schema.json"
   ]
 }

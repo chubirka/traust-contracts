@@ -10,7 +10,6 @@
     "duplicate"
   ],
   "used_in_schemas": [
-    "triage.schema.json",
-    "verification.schema.json"
+    "triage.schema.json"
   ]
 }
