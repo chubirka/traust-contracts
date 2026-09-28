@@ -7,6 +7,8 @@ from typing import Any
 from pydantic import Field
 
 from traust_contracts.v1.enums import (
+    CorrectionReason,
+    CorrectionTarget,
     DispositionEmbargo,
     DispositionResolution,
     LayerReviewQueueReason,
@@ -61,6 +63,31 @@ class ExternalRef(ContractModel):
     stamped_at: str | None = None
 
 
+class CorrectionAuthority(ContractModel):
+    ticket: str
+    approved_by: str | None = None
+
+
+class LayerCorrection(ContractModel):
+    """Administrative correction block — layer.schema.json $defs/event_correction.
+
+    Declared on the model, not only in the schema: ``ContractModel`` ignores
+    unknown keys, so a block that exists only in JSON is silently dropped by any
+    ``from_dict``/``to_dict`` round-trip. ``alias`` and ``finding`` were declared
+    in the schema and omitted here, and that is exactly how they became
+    unwritable through the typed path.
+    """
+
+    target: CorrectionTarget
+    reason: CorrectionReason
+    after: Any
+    authority: CorrectionAuthority
+    target_event_id: str | None = None
+    before: Any = None
+    schema_from: str | None = None
+    schema_to: str | None = None
+
+
 class LayerEvent(ContractModel):
     # Timestamps are validated here rather than left to the schema: jsonschema
     # asserts `format: date-time` only when the optional rfc3339-validator
@@ -80,6 +107,9 @@ class LayerEvent(ContractModel):
     # from_dict/to_dict round-trip silently drops the identity stamp.
     fingerprint: str | None = None
     fingerprint_algo: str | None = None
+    alias: dict[str, Any] | None = None
+    finding: dict[str, Any] | None = None
+    correction: LayerCorrection | None = None
 
 
 class ReviewItem(ContractModel):

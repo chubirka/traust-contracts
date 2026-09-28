@@ -35,6 +35,38 @@ class DispositionEmbargo(StrEnum):
     UNCERTAIN = "uncertain"
 
 
+class CorrectionTarget(StrEnum):
+    """What an administrative correction event corrects (layer.schema.json
+    $defs/event_correction). The first four name a mutable metadata field the
+    signature binds; EVENT overlays fields onto a prior event for projection
+    only, because event payloads are immutable."""
+
+    CLAIM_HASHES = "claim_hashes"
+    AUDIT_REPORT_SHA256 = "audit_report_sha256"
+    ARTIFACT_DIGESTS = "artifact_digests"
+    FINDING_ALIASES = "finding_aliases"
+    EVENT = "event"
+
+
+#: Correction targets that are signature-bound metadata fields. A write that
+#: changes one of these without a covering correction event is the rewrite the
+#: mechanism exists to prevent.
+SIGNED_METADATA_TARGETS = frozenset(
+    {
+        CorrectionTarget.CLAIM_HASHES,
+        CorrectionTarget.AUDIT_REPORT_SHA256,
+        CorrectionTarget.ARTIFACT_DIGESTS,
+    }
+)
+
+
+class CorrectionReason(StrEnum):
+    DATA_ERROR = "data_error"
+    SCHEMA_MIGRATION = "schema_migration"
+    BASELINE_REWRITE = "baseline_rewrite"
+    OPERATOR_ERROR = "operator_error"
+
+
 class Assurance(StrEnum):
     EXECUTION_PROVEN = "execution_proven"
     HUMAN_REVIEWED = "human_reviewed"
@@ -139,6 +171,12 @@ class SourceType(StrEnum):
     TRIAGE_REPORT = "triage_report"
     IMPACT_REPORT = "impact_report"
     VULN_SCAN_REPORT = "vuln_scan_report"
+    FUZZ_REPORT = "fuzz_report"
+    # Neither of these is an evidence class; both carry an empty disposition.
+    # They were in the schema enum and missing here, so typed code could not
+    # name the two source types that the precedence engine must NOT weigh.
+    REBASELINE = "rebaseline"
+    CORRECTION = "correction"
 
 
 class ActorKind(StrEnum):
