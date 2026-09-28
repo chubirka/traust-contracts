@@ -1,0 +1,14 @@
+{
+  "name": "mitigation_effort",
+  "source_schema": "threat-model.schema.json#/$defs/mitigation/properties/effort",
+  "description": "Values of `effort` in threat-model.schema.json.",
+  "values": [
+    "XS",
+    "S",
+    "M",
+    "L"
+  ],
+  "used_in_schemas": [
+    "threat-model.schema.json"
+  ]
+}

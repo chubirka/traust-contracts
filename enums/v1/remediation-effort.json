@@ -1,0 +1,19 @@
+{
+  "name": "remediation_effort",
+  "source_schema": "pqc-blockers.schema.json#/$defs/finding/properties/remediation_effort",
+  "description": "Values of `remediation_effort` in pqc-blockers.schema.json.",
+  "values": [
+    "trivial",
+    "moderate",
+    "significant",
+    "blocked-external"
+  ],
+  "used_in_schemas": [
+    "adapter-result.schema.json",
+    "pqc-blockers.schema.json",
+    "pqc-decision-tree.schema.json",
+    "pqc-readiness.schema.json",
+    "report.schema.json",
+    "validation.schema.json"
+  ]
+}

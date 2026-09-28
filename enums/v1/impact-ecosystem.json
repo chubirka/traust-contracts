@@ -1,0 +1,20 @@
+{
+  "name": "impact_ecosystem",
+  "source_schema": "impact-analysis.schema.json#/$defs/metadata/properties/ecosystem",
+  "description": "Package ecosystem of the affected module.",
+  "values": [
+    "go",
+    "npm",
+    "pypi",
+    "maven",
+    "cargo",
+    "ruby",
+    "nuget",
+    "actions",
+    "docker",
+    "helm"
+  ],
+  "used_in_schemas": [
+    "impact-analysis.schema.json"
+  ]
+}

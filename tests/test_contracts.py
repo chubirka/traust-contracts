@@ -165,7 +165,9 @@ class TestEnums:
             else:
                 # Successfully navigated; check enum values
                 if isinstance(obj, dict) and "enum" in obj:
-                    schema_values = set(obj["enum"])
+                    # null marks a nullable field, not a vocabulary value; the
+                    # registry records strings only (ci/enum_registry.py).
+                    schema_values = {v for v in obj["enum"] if v is not None}
                     enum_values = set(enum_def.get("values", []))
                     assert enum_values == schema_values, (
                         f"{ef.name}: values mismatch with {schema_name}. "

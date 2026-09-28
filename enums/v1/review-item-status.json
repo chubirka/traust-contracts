@@ -1,0 +1,13 @@
+{
+  "name": "review_item_status",
+  "source_schema": "layer.schema.json#/$defs/review_item/properties/status",
+  "description": "Queue state.",
+  "values": [
+    "pending",
+    "confirmed",
+    "rejected"
+  ],
+  "used_in_schemas": [
+    "layer.schema.json"
+  ]
+}

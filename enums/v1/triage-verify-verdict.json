@@ -1,0 +1,16 @@
+{
+  "name": "triage_verify_verdict",
+  "source_schema": "triage.schema.json#/$defs/finding/properties/verify_verdict",
+  "description": "exploitable|mitigated|needs_manual_test are the skill's canonical values; confirmed|refuted|hardening are accepted presentation aliases.",
+  "values": [
+    "exploitable",
+    "mitigated",
+    "needs_manual_test",
+    "confirmed",
+    "refuted",
+    "hardening"
+  ],
+  "used_in_schemas": [
+    "triage.schema.json"
+  ]
+}

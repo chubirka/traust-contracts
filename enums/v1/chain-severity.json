@@ -1,0 +1,14 @@
+{
+  "name": "chain_severity",
+  "source_schema": "validation.schema.json#/$defs/validated_finding/properties/chain_context/anyOf/1/properties/chain_severity",
+  "description": "Values of `chain_severity` in validation.schema.json.",
+  "values": [
+    "critical",
+    "high",
+    "medium",
+    "low"
+  ],
+  "used_in_schemas": [
+    "validation.schema.json"
+  ]
+}
