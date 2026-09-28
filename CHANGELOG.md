@@ -2,6 +2,35 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.38.0]
+
+### Added
+
+- **`correction` event vocabulary** (`$defs/event_correction`, `source_type`
+  `correction`, `CorrectionTarget`/`CorrectionReason` enums, `LayerCorrection`
+  model). An administrative correction of data a layer already committed to:
+  the signature-bound metadata digests (`claim_hashes`, `audit_report_sha256`,
+  `artifact_digests`), `finding_aliases`, or fields on a prior event. Like
+  `rebaseline`, it is NOT an evidence class and carries an empty disposition.
+  It exists because a correction previously had nowhere to live: event payloads
+  are immutable, while the metadata digests were rewritable with no record of
+  the prior value, who changed it, or why — leaving an authorised correction
+  indistinguishable from tampering after the fact.
+- `layer_event.correction` column (both dialects) and its upsert binding, so
+  "which values were corrected, by whom, under what ticket" is answerable from
+  SQL rather than only from the blob.
+
+### Fixed
+
+- `LayerEvent` now declares `alias`, `finding`, and `correction`. `ContractModel`
+  ignores unknown keys, so a block declared only in the schema was silently
+  dropped by every `from_dict`/`to_dict` round-trip — which is how `alias` and
+  `finding` became unwritable through the typed path after being added to the
+  schema.
+- `SourceType` gained `fuzz_report`, `rebaseline`, and `correction`. The enum had
+  drifted from the schema, so typed code could not name the source types the
+  precedence engine must NOT weigh; a test now pins the two lists together.
+
 ## [0.37.1]
 
 ### Fixed

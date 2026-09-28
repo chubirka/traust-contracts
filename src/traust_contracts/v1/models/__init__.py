@@ -13,8 +13,10 @@ from traust_contracts.v1.models.finding import (
 )
 from traust_contracts.v1.models.impact import ImpactAnalysis
 from traust_contracts.v1.models.layer import (
+    CorrectionAuthority,
     ExternalRef,
     Layer,
+    LayerCorrection,
     LayerEvent,
     LayerMetadata,
     ReviewItem,
@@ -44,6 +46,7 @@ __all__ = [
     "AdapterSummary",
     "ComplianceAssessment",
     "ComplianceScope",
+    "CorrectionAuthority",
     "DependencyProvenance",
     "Disposition",
     "EvidenceBlock",
@@ -51,6 +54,7 @@ __all__ = [
     "Finding",
     "ImpactAnalysis",
     "Layer",
+    "LayerCorrection",
     "LayerEvent",
     "LayerMetadata",
     "Location",
