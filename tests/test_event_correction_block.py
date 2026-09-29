@@ -139,30 +139,14 @@ class TestStructure:
 
 
 class TestTargetConstraints:
-    def test_event_target_requires_target_event_id(self) -> None:
-        assert _errors(
-            _correction_event(
-                target="event", before={"severity": "low"}, after={"severity": "high"}
-            )
-        )
-
-    def test_event_target_overlay_validates(self) -> None:
-        ev = _correction_event(
-            target="event",
-            target_event_id="e" * 64,
-            reason="data_error",
-            before={"rationale": "typo"},
-            after={"rationale": "corrected rationale text"},
-        )
-        assert _errors(ev) == []
-
-    def test_metadata_target_forbids_target_event_id(self) -> None:
-        """target_event_id on a metadata correction would name a target the
-        correction does not touch — ambiguity the verifier cannot resolve."""
-        assert _errors(_correction_event(target_event_id="e" * 64))
-
-    def test_event_overlay_must_be_a_non_empty_map(self) -> None:
-        assert _errors(_correction_event(target="event", target_event_id="e" * 64, after={}))
+    def test_event_content_is_not_a_target(self) -> None:
+        """Events are immutable and are corrected by appending a superseding
+        determination, which latest-wins precedence already resolves. A
+        read-time overlay would be a SECOND read-time transform competing with
+        the v1->v2 normaliser, with no defined ordering between the two."""
+        targets = LAYER_SCHEMA["$defs"]["event_correction"]["properties"]["target"]["enum"]
+        assert "event" not in targets
+        assert _errors(_correction_event(target="event"))
 
     def test_report_digest_target_takes_a_digest(self) -> None:
         assert _errors(_correction_event(target="audit_report_sha256", after={"not": "a digest"}))

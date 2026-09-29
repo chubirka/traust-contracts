@@ -82,7 +82,6 @@ class LayerCorrection(ContractModel):
     reason: CorrectionReason
     after: Any
     authority: CorrectionAuthority
-    target_event_id: str | None = None
     before: Any = None
     schema_from: str | None = None
     schema_to: str | None = None
