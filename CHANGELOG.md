@@ -2,6 +2,26 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.42.0]
+
+### Changed
+
+- **One `ecosystem` vocabulary.** `impact-analysis` `metadata.ecosystem` now
+  accepts the distro ecosystems `rpm`, `deb` and `apk` that report
+  `finding.dependency.ecosystem` already carried, so the two fields share one
+  registry file, `enums/v1/ecosystem.json`. It replaces `impact-ecosystem.json`
+  and `dependency-ecosystem.json`. The change is additive: every existing
+  document still validates.
+- `compliance-mapping-framework.json` is renamed `compliance-control-catalog.json`
+  (`compliance_control_catalog`), because a control mapping names a control
+  catalog. It deliberately differs from `compliance_framework`: FedRAMP High
+  and Moderate are 800-53B baselines assessed over the `nist-800-53-rev5`
+  catalog, so they are assessment targets, not catalogs. Both descriptions
+  now say so.
+- `isolation-check-result.json` describes what `na` means. Renaming the value
+  to `not_applicable` would change stored reports, so it is left to the v2
+  vocabulary.
+
 ## [0.41.0]
 
 ### Added
