@@ -145,11 +145,17 @@ A registry file has `name`, `source_schema`, `description`, `values` and
 |---|---|
 | `definitions` | What each value means; one entry per value |
 | `standard` | The standard followed: `name`, `relationship` (`exact` or `adapted`, where adapted needs a `note`) and an optional `url`. Or `{"none": "<why>"}` |
-| `deprecated` | For each deprecated value, `replaced_by`: the registry values (`{enum, value}`) that replace it. Several entries split a value across vocabularies; an empty list is a one-way drop, where readers keep the original string. A replacement is never itself deprecated. |
+| `deprecated` | For each deprecated value, `replaced_by`: the registry values (`{enum, value}`) that replace it. Several entries split a value across vocabularies; an empty list is a one-way drop, where readers keep the original string. A replacement is never itself deprecated. `"retired": true` marks a value that a major release removed from `values`. |
 
 Vocabulary changes are made in place: new values are added (a minor
-release), and old values stay valid, marked `deprecated`. They are removed
-only in a major release. Rules that depend on other fields, and moves
+release). An old value then goes through two stages:
+
+1. **Deprecated.** It stays in `values`, so the schema still accepts it.
+   Readers normalise it to its replacement, and writers stop emitting it.
+2. **Retired**, in a major release. It is removed from `values`, so the
+   schema rejects new writes. Its `deprecated` entry stays, with
+   `"retired": true`, because ledger events keep their original strings for
+   good and readers must always be able to normalise them. Rules that depend on other fields, and moves
 between fields, are not registry data; they belong in the code or schema
 change that needs them.
 
