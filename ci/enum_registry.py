@@ -20,6 +20,22 @@ across files. A vocabulary that is documented but deliberately not enforced by
 any schema enum (its source node is prose or a pattern) sets
 `"schema_enforced": false`; it is then used where its `source_schema` points.
 
+Registry files may also carry three optional fields, checked by
+`format_problems`:
+
+- `definitions`: what each value means; exactly one entry per value.
+- `standard`: `{"name", "relationship": "exact"|"adapted", "url"?, "note"?}`
+  (an adapted standard needs a note saying what differs), or
+  `{"none": "<why no standard applies>"}`.
+- `deprecated`: `{"<value>": {"replaced_by": [{"enum", "value"}], "note"?}}`.
+  Several replacements express a value that splits across vocabularies; an
+  empty list is a one-way drop, and readers keep the original string. A
+  replacement must be a registry value that is not itself deprecated, so
+  replacements never chain or loop.
+
+These fields only describe vocabulary. Rules that depend on other fields, and
+moves between fields, belong in the code or schema change that needs them.
+
   (no flag)   print the unregistered sites and exit 0 (warn mode)
   --check     exit 1 when any registered file's metadata is wrong
   --write     rewrite `used_in_schemas` in every registered file
@@ -156,10 +172,107 @@ def derived_used_in(values: frozenset[str], reach: dict[str, set[frozenset[str]]
     return sorted(name for name, sets in reach.items() if values in sets)
 
 
-def problems(schemas: dict[str, dict], registry: dict[str, dict]) -> list[str]:
-    """Every way a registered file's metadata disagrees with the schemas."""
-    reach = reachable(schemas)
+KNOWN_KEYS = {
+    "name",
+    "source_schema",
+    "schema_enforced",
+    "description",
+    "values",
+    "note",
+    "used_in_schemas",
+    "definitions",
+    "standard",
+    "deprecated",
+}
+
+
+def _standard_problems(fname: str, std) -> list[str]:
+    if not isinstance(std, dict):
+        return [f"{fname}: standard must be an object"]
+    if set(std) == {"none"}:
+        return (
+            []
+            if isinstance(std["none"], str) and std["none"]
+            else [f"{fname}: standard.none must say why no standard applies"]
+        )
+    out = []
+    unknown = set(std) - {"name", "url", "relationship", "note"}
+    if unknown:
+        out.append(f"{fname}: standard has unknown keys {sorted(unknown)}")
+    if not std.get("name"):
+        out.append(f'{fname}: standard needs a name, or {{"none": <why>}}')
+    if std.get("relationship") not in ("exact", "adapted"):
+        out.append(f"{fname}: standard.relationship must be exact or adapted")
+    elif std["relationship"] == "adapted" and not std.get("note"):
+        out.append(f"{fname}: an adapted standard needs a note saying what differs")
+    return out
+
+
+def format_problems(registry: dict[str, dict]) -> list[str]:
+    """Problems with the optional definitions / standard / deprecated fields."""
     out: list[str] = []
+    by_name = {e.get("name"): e for e in registry.values()}
+    for fname, entry in registry.items():
+        values = entry.get("values") or []
+        unknown = set(entry) - KNOWN_KEYS
+        if unknown:
+            out.append(f"{fname}: unknown keys {sorted(unknown)}")
+        if "definitions" in entry:
+            defs = entry["definitions"]
+            if not isinstance(defs, dict):
+                out.append(f"{fname}: definitions must map each value to its meaning")
+            else:
+                missing = [v for v in values if v not in defs]
+                extra = sorted(set(defs) - set(values))
+                if missing or extra:
+                    out.append(f"{fname}: definitions missing {missing}, extra {extra}")
+                empty = sorted(k for k, v in defs.items() if not (isinstance(v, str) and v))
+                if empty:
+                    out.append(f"{fname}: definitions are empty for {empty}")
+        if "standard" in entry:
+            out.extend(_standard_problems(fname, entry["standard"]))
+        deprecated = entry.get("deprecated")
+        if deprecated is None:
+            continue
+        if not isinstance(deprecated, dict):
+            out.append(f"{fname}: deprecated must map each deprecated value to its replacement")
+            continue
+        for value, spec in deprecated.items():
+            if value not in values:
+                out.append(f"{fname}: deprecated {value!r} is not one of the file's values")
+            if not isinstance(spec, dict) or not isinstance(spec.get("replaced_by"), list):
+                out.append(f"{fname}: deprecated {value!r} needs a replaced_by list")
+                continue
+            if set(spec) - {"replaced_by", "note"}:
+                out.append(f"{fname}: deprecated {value!r} has unknown keys")
+            seen: set[str] = set()
+            for target in spec["replaced_by"]:
+                if not isinstance(target, dict) or set(target) != {"enum", "value"}:
+                    out.append(f"{fname}: {value!r} replacement must be {{enum, value}}")
+                    continue
+                if target["enum"] in seen:
+                    out.append(f"{fname}: {value!r} is replaced twice in {target['enum']!r}")
+                seen.add(target["enum"])
+                other = by_name.get(target["enum"])
+                if other is None:
+                    out.append(f"{fname}: {value!r} is replaced by unknown enum {target['enum']!r}")
+                elif target["value"] not in (other.get("values") or []):
+                    out.append(
+                        f"{fname}: {value!r} is replaced by {target['value']!r}, which is not "
+                        f"a value of {target['enum']!r}"
+                    )
+                elif target["value"] in (other.get("deprecated") or {}):
+                    out.append(
+                        f"{fname}: {value!r} is replaced by {target['enum']}.{target['value']}, "
+                        "which is itself deprecated"
+                    )
+    return out
+
+
+def problems(schemas: dict[str, dict], registry: dict[str, dict]) -> list[str]:
+    """Every way a registered file disagrees with the schemas or the format."""
+    reach = reachable(schemas)
+    out: list[str] = format_problems(registry)
     seen_sets: dict[frozenset[str], str] = {}
     seen_names: dict[str, str] = {}
     for fname, entry in registry.items():

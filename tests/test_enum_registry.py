@@ -5,6 +5,10 @@ naming a schema file that does not exist, a usage list claiming a schema that
 defines a different enum). ci/enum_registry.py derives them; this test fails
 when a registered file disagrees with what it derives.
 
+The optional `definitions`, `standard` and `deprecated` fields are checked
+against a small synthetic registry (one rename, merge, split and one-way
+drop) and against every real file.
+
 Every schema enum must also be registered: a site whose value set matches no
 enums/v1 file fails the build, so a new vocabulary cannot enter a schema without
 entering the registry (and, through it, the generated SDK enum types).
@@ -12,9 +16,12 @@ entering the registry (and, through it, the generated SDK enum types).
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location("enum_registry", ROOT / "ci" / "enum_registry.py")
@@ -54,3 +61,134 @@ def test_usage_follows_refs_across_files():
     used = enum_registry.derived_used_in(frozenset({"low", "high"}), reach)
     # d only names the values inside an `if` condition; it does not validate them.
     assert used == ["a.schema.json", "b.schema.json", "c.schema.json"]
+
+
+# --- Optional fields: definitions, standard, deprecated -------------------
+#
+# A small synthetic registry, deliberately unrelated to any real vocabulary,
+# with one example of each kind of replacement: rename (crimson -> red), merge
+# (crimson and scarlet -> red), split (navy -> colour.blue + shade.dark) and a
+# one-way drop (teal, with no replacement).
+
+
+def _synthetic() -> dict[str, dict]:
+    return {
+        "colour.json": {
+            "name": "colour",
+            "description": "What colour is it?",
+            "values": ["red", "crimson", "scarlet", "blue", "navy", "teal"],
+            "definitions": {
+                "red": "Red.",
+                "crimson": "Old name for red.",
+                "scarlet": "Old name for red.",
+                "blue": "Blue.",
+                "navy": "Dark blue; split into colour and shade.",
+                "teal": "No longer recorded.",
+            },
+            "standard": {"name": "Test palette", "relationship": "adapted", "note": "Fewer hues."},
+            "deprecated": {
+                "crimson": {"replaced_by": [{"enum": "colour", "value": "red"}]},
+                "scarlet": {"replaced_by": [{"enum": "colour", "value": "red"}]},
+                "navy": {
+                    "replaced_by": [
+                        {"enum": "colour", "value": "blue"},
+                        {"enum": "shade", "value": "dark"},
+                    ]
+                },
+                "teal": {"replaced_by": [], "note": "One-way: readers keep the original string."},
+            },
+        },
+        "shade.json": {
+            "name": "shade",
+            "description": "How dark is it?",
+            "values": ["dark", "light"],
+            "standard": {"none": "Test vocabulary."},
+        },
+    }
+
+
+def test_synthetic_registry_with_every_replacement_kind_passes():
+    assert enum_registry.format_problems(_synthetic()) == []
+
+
+def test_real_registry_files_pass_the_format_checks():
+    assert enum_registry.format_problems(enum_registry.load_registry()) == []
+
+
+def _colour(files):
+    return files["colour.json"]
+
+
+@pytest.mark.parametrize(
+    ("case", "mutate", "expected"),
+    [
+        (
+            "definitions cover every value",
+            lambda f: _colour(f)["definitions"].pop("blue"),
+            "definitions missing ['blue']",
+        ),
+        (
+            "definitions are not empty",
+            lambda f: _colour(f)["definitions"].__setitem__("red", ""),
+            "definitions are empty for ['red']",
+        ),
+        (
+            "an adapted standard needs a note",
+            lambda f: _colour(f)["standard"].pop("note"),
+            "adapted standard needs a note",
+        ),
+        (
+            "a standard needs a name",
+            lambda f: _colour(f).__setitem__("standard", {"relationship": "exact"}),
+            "standard needs a name",
+        ),
+        (
+            "only the file's own values can be deprecated",
+            lambda f: _colour(f)["deprecated"].__setitem__("green", {"replaced_by": []}),
+            "deprecated 'green' is not one of the file's values",
+        ),
+        (
+            "every deprecation says what replaces it",
+            lambda f: _colour(f)["deprecated"].__setitem__("teal", {"note": "gone"}),
+            "deprecated 'teal' needs a replaced_by list",
+        ),
+        (
+            "replacements name a real enum",
+            lambda f: _colour(f)["deprecated"]["crimson"]["replaced_by"].__setitem__(
+                0, {"enum": "hue", "value": "red"}
+            ),
+            "replaced by unknown enum 'hue'",
+        ),
+        (
+            "replacements name a real value",
+            lambda f: _colour(f)["deprecated"]["crimson"]["replaced_by"].__setitem__(
+                0, {"enum": "colour", "value": "green"}
+            ),
+            "which is not a value of 'colour'",
+        ),
+        (
+            "replacements do not chain",
+            lambda f: _colour(f)["deprecated"]["crimson"]["replaced_by"].__setitem__(
+                0, {"enum": "colour", "value": "scarlet"}
+            ),
+            "which is itself deprecated",
+        ),
+        (
+            "a split lands in each enum once",
+            lambda f: _colour(f)["deprecated"]["navy"]["replaced_by"].append(
+                {"enum": "shade", "value": "light"}
+            ),
+            "is replaced twice in 'shade'",
+        ),
+        (
+            "unknown keys are typos",
+            lambda f: _colour(f).__setitem__("definiton", {}),
+            "unknown keys ['definiton']",
+        ),
+    ],
+)
+def test_each_format_rule_rejects_a_violation(case, mutate, expected):
+    files = copy.deepcopy(_synthetic())
+    mutate(files)
+    found = enum_registry.format_problems(files)
+    assert any(expected in p for p in found), f"{case}: got {found}"
