@@ -44,19 +44,14 @@ class RestatementTarget(StrEnum):
     CLAIM_HASHES = "claim_hashes"
     AUDIT_REPORT_SHA256 = "audit_report_sha256"
     ARTIFACT_DIGESTS = "artifact_digests"
-    FINDING_ALIASES = "finding_aliases"
 
 
-#: Restatement targets that are signature-bound metadata fields. A write that
-#: changes one of these without a covering restatement event is the rewrite the
-#: mechanism exists to prevent.
-SIGNED_METADATA_TARGETS = frozenset(
-    {
-        RestatementTarget.CLAIM_HASHES,
-        RestatementTarget.AUDIT_REPORT_SHA256,
-        RestatementTarget.ARTIFACT_DIGESTS,
-    }
-)
+#: Every restatement target is a signature-bound metadata field: a write that
+#: changes one without a covering restatement event is the rewrite the mechanism
+#: exists to prevent. finding_aliases is deliberately absent -- a rebaseline
+#: event records a rename in the Merkle-covered event stream, so the metadata
+#: table is a rebuildable projection rather than authority.
+SIGNED_METADATA_TARGETS = frozenset(RestatementTarget)
 
 
 class RestatementReason(StrEnum):

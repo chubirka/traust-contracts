@@ -131,14 +131,32 @@ class TestStructure:
         del ev["restatement"][missing]
         assert _errors(ev)
 
-    def test_before_is_optional(self) -> None:
-        """A field with no prior value has nothing to record."""
+    def test_before_is_required(self) -> None:
+        """A restatement asserts what it replaces. A field with no prior value
+        is not restated at all — it is written through the ordinary path."""
         ev = _restatement_event(target="audit_report_sha256", after="d" * 64)
         del ev["restatement"]["before"]
-        assert _errors(ev) == []
+        assert _errors(ev)
+
+    def test_map_targets_take_a_delta_not_a_snapshot(self) -> None:
+        """before/after carry only the changed entries, so an event's size
+        tracks the change rather than the layer. Empty is meaningless."""
+        assert _errors(_restatement_event(before={}, after={}))
+        assert (
+            _errors(_restatement_event(before={"FIND-1": "a" * 64}, after={"FIND-1": "b" * 64}))
+            == []
+        )
 
 
 class TestTargetConstraints:
+    def test_finding_aliases_is_not_a_target(self) -> None:
+        """A rebaseline event already records a rename inside the Merkle tree,
+        so metadata.finding_aliases is a rebuildable projection, not authority.
+        Restating it would be a second mechanism for a solved problem."""
+        targets = LAYER_SCHEMA["$defs"]["event_restatement"]["properties"]["target"]["enum"]
+        assert "finding_aliases" not in targets
+        assert _errors(_restatement_event(target="finding_aliases"))
+
     def test_event_content_is_not_a_target(self) -> None:
         """Events are immutable and are restated by appending a superseding
         determination, which latest-wins precedence already resolves. A

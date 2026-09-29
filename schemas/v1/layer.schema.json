@@ -808,10 +808,11 @@
     },
     "event_restatement": {
       "type": "object",
-      "description": "An administrative restatement of layer metadata a signature binds: the digests (claim_hashes, audit_report_sha256, artifact_digests) and finding_aliases. Mutable, but rewriting one destroys the prior value, so an authorised restatement and a tampering rewrite were previously indistinguishable. Appending this event moves the Merkle root, which drops the stale signature and re-signs through the normal write path -- no new signature format is needed, because format 4 already binds the root and all three digests. Restatements stack in append order; a wrong restatement is superseded by another, never removed. EVENT CONTENT IS NOT A TARGET: events are immutable and are restated by appending a superseding determination, which latest-wins precedence already resolves. A read-time overlay would be a second read-time transform competing with the v1->v2 normaliser, with no defined ordering between them.",
+      "description": "An administrative restatement of signature-bound layer metadata: claim_hashes, audit_report_sha256, artifact_digests. Those fields are mutable, but rewriting one destroys the prior value, so an authorised restatement and a tampering rewrite were previously indistinguishable. Appending this event moves the Merkle root, which drops the stale signature and re-signs through the normal write path -- no new signature format is needed, because format 4 already binds the root and all three digests. DELTA, NOT SNAPSHOT: for map-valued targets, before and after carry only the entries being changed, so an event's size tracks the change rather than the layer. Restating the same key twice appends two small events instead of two copies of the whole map. Restatements stack in append order and a wrong one is superseded by another, never removed; a restatement may not restore a value the chain already retired -- that reverses an earlier decision and needs its own stated reason. EVENT CONTENT IS NOT A TARGET: events are immutable and are corrected by appending a superseding determination. finding_aliases is not a target either: a rebaseline event already records a rename in the Merkle-covered event stream, so the metadata table is a rebuildable projection rather than authority.",
       "required": [
         "target",
         "reason",
+        "before",
         "after",
         "authority"
       ],
@@ -822,8 +823,7 @@
           "enum": [
             "claim_hashes",
             "audit_report_sha256",
-            "artifact_digests",
-            "finding_aliases"
+            "artifact_digests"
           ],
           "description": "The metadata field being restated. The restatement is the authority for that field's new value, and a verifier replays the chain to check it."
         },
@@ -846,10 +846,10 @@
           "minLength": 1
         },
         "before": {
-          "description": "The value as it stood, verbatim. Optional only when the field had no prior value; a writer MUST refuse a restatement whose `before` disagrees with what is actually stored, which is what stops a stale restatement from silently clobbering a newer one."
+          "description": "The entries being replaced, as they stand. For a map-valued target this is the changed keys only, never the whole map. Required: a restatement asserts what it replaces, and a writer refuses one whose before disagrees with what is stored."
         },
         "after": {
-          "description": "The restated value for the named metadata field."
+          "description": "The replacement entries. For a map-valued target this is the changed keys only; the writer merges them over the stored map. A null value deletes that key."
         },
         "authority": {
           "type": "object",
@@ -904,8 +904,7 @@
               "target": {
                 "enum": [
                   "claim_hashes",
-                  "artifact_digests",
-                  "finding_aliases"
+                  "artifact_digests"
                 ]
               }
             },
@@ -916,13 +915,12 @@
           "then": {
             "properties": {
               "before": {
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": "object",
+                "minProperties": 1
               },
               "after": {
-                "type": "object"
+                "type": "object",
+                "minProperties": 1
               }
             }
           }

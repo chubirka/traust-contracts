@@ -2,6 +2,19 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.40.0]
+
+### Changed
+
+- Restatement `before`/`after` are a DELTA for map-valued targets: only the
+  entries being changed, never the whole map. An event's size now tracks the
+  change rather than the layer (measured: 69% smaller for a one-entry change in
+  a ten-artifact map, and ~158 KB → ~1 KB for a single claim on a
+  1,000-finding layer). `before` is now required.
+- Removed `finding_aliases` as a restatement target. A `rebaseline` event
+  already records a rename inside the Merkle-covered event stream, so the
+  metadata table is a rebuildable projection rather than authority.
+
 ## [0.39.0]
 
 ### Added
