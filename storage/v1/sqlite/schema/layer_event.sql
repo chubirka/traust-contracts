@@ -63,11 +63,11 @@ CREATE TABLE IF NOT EXISTS layer_event (
     -- both with their own sub-shape, and no view cuts by them yet.
     alias TEXT CHECK (alias IS NULL OR json_valid(alias)),
     finding TEXT CHECK (finding IS NULL OR json_valid(finding)),
-    -- An administrative correction of data this layer already committed
+    -- An administrative restatement of data this layer already committed
     -- to. Kept whole for the same reason as the two above, and queryable
-    -- because "which values were corrected, by whom, under what ticket"
-    -- is the first question asked of a ledger that admits corrections.
-    correction TEXT CHECK (correction IS NULL OR json_valid(correction)),
+    -- because "which values were restated, by whom, under what ticket"
+    -- is the first question asked of a ledger that admits restatements.
+    restatement TEXT CHECK (restatement IS NULL OR json_valid(restatement)),
     PRIMARY KEY (binding_id, event_id),
     FOREIGN KEY (binding_id, artifact_digest)
         REFERENCES artifact_binding(binding_id, artifact_digest)

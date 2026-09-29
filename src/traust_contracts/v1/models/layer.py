@@ -7,11 +7,11 @@ from typing import Any
 from pydantic import Field
 
 from traust_contracts.v1.enums import (
-    CorrectionReason,
-    CorrectionTarget,
     DispositionEmbargo,
     DispositionResolution,
     LayerReviewQueueReason,
+    RestatementReason,
+    RestatementTarget,
     Severity,
     Validity,
 )
@@ -63,13 +63,13 @@ class ExternalRef(ContractModel):
     stamped_at: str | None = None
 
 
-class CorrectionAuthority(ContractModel):
+class RestatementAuthority(ContractModel):
     ticket: str
     approved_by: str | None = None
 
 
-class LayerCorrection(ContractModel):
-    """Administrative correction block — layer.schema.json $defs/event_correction.
+class LayerRestatement(ContractModel):
+    """Administrative restatement block — layer.schema.json $defs/event_restatement.
 
     Declared on the model, not only in the schema: ``ContractModel`` ignores
     unknown keys, so a block that exists only in JSON is silently dropped by any
@@ -78,10 +78,10 @@ class LayerCorrection(ContractModel):
     unwritable through the typed path.
     """
 
-    target: CorrectionTarget
-    reason: CorrectionReason
+    target: RestatementTarget
+    reason: RestatementReason
     after: Any
-    authority: CorrectionAuthority
+    authority: RestatementAuthority
     before: Any = None
     schema_from: str | None = None
     schema_to: str | None = None
@@ -108,7 +108,7 @@ class LayerEvent(ContractModel):
     fingerprint_algo: str | None = None
     alias: dict[str, Any] | None = None
     finding: dict[str, Any] | None = None
-    correction: LayerCorrection | None = None
+    restatement: LayerRestatement | None = None
 
 
 class ReviewItem(ContractModel):
