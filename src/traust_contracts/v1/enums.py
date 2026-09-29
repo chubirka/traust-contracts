@@ -36,16 +36,15 @@ class DispositionEmbargo(StrEnum):
 
 
 class CorrectionTarget(StrEnum):
-    """What an administrative correction event corrects (layer.schema.json
-    $defs/event_correction). The first four name a mutable metadata field the
-    signature binds; EVENT overlays fields onto a prior event for projection
-    only, because event payloads are immutable."""
+    """Metadata an administrative correction event may correct
+    (layer.schema.json $defs/event_correction). Event content is deliberately
+    absent: events are immutable and are corrected by appending a superseding
+    determination."""
 
     CLAIM_HASHES = "claim_hashes"
     AUDIT_REPORT_SHA256 = "audit_report_sha256"
     ARTIFACT_DIGESTS = "artifact_digests"
     FINDING_ALIASES = "finding_aliases"
-    EVENT = "event"
 
 
 #: Correction targets that are signature-bound metadata fields. A write that

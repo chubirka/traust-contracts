@@ -2,6 +2,21 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.38.1]
+
+### Changed
+
+- **`CorrectionTarget` covers layer metadata only.** Removed the `event` target
+  and the `target_event_id` field from `$defs/event_correction`. Correcting an
+  event's content meant applying `after` as a read-time overlay, which is a
+  SECOND read-time transform alongside the v1→v2 normaliser, with no defined
+  ordering between the two (classifier-disposition plan R1 and D13). The ledger
+  already supersedes a wrong determination with a later event, which latest-wins
+  precedence resolves — so the overlay bought nothing and would have required
+  every raw `layer["events"]` reader in traust-engine and traust to opt in.
+- Shipped in the same release cycle as 0.38.0 (untagged at the time), so no
+  consumer can have written an `event`-target correction.
+
 ## [0.38.0]
 
 ### Added

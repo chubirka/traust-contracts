@@ -808,7 +808,7 @@
     },
     "event_correction": {
       "type": "object",
-      "description": "An administrative correction of data that is otherwise unfixable: signature-bound metadata digests (mutable, but rewriting them destroys the prior value) and prior event fields (immutable, so only supersedable). Appending this event moves the Merkle root, which drops the stale signature and re-signs through the normal write path -- no new signature format is needed, because format 4 already binds the root and all three digests. The correction NEVER mutates its target: the target event keeps its bytes and its leaf hash, and a verifier can still reproduce every historical root. Corrections stack in append order; a wrong correction is superseded by another correction, never removed.",
+      "description": "An administrative correction of layer metadata a signature binds: the digests (claim_hashes, audit_report_sha256, artifact_digests) and finding_aliases. Mutable, but rewriting one destroys the prior value, so an authorised correction and a tampering rewrite were previously indistinguishable. Appending this event moves the Merkle root, which drops the stale signature and re-signs through the normal write path -- no new signature format is needed, because format 4 already binds the root and all three digests. Corrections stack in append order; a wrong correction is superseded by another, never removed. EVENT CONTENT IS NOT A TARGET: events are immutable and are corrected by appending a superseding determination, which latest-wins precedence already resolves. A read-time overlay would be a second read-time transform competing with the v1->v2 normaliser, with no defined ordering between them.",
       "required": [
         "target",
         "reason",
@@ -823,15 +823,9 @@
             "claim_hashes",
             "audit_report_sha256",
             "artifact_digests",
-            "finding_aliases",
-            "event"
+            "finding_aliases"
           ],
-          "description": "What is being corrected. The first four name a metadata field and the correction is the authority for that field's new value; 'event' overlays `after` onto a prior event FOR PROJECTION ONLY."
-        },
-        "target_event_id": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "The event whose projected fields `after` overrides. Required when target is 'event', forbidden otherwise."
+          "description": "The metadata field being corrected. The correction is the authority for that field's new value, and a verifier replays the chain to check it."
         },
         "reason": {
           "type": "string",
@@ -877,36 +871,6 @@
         }
       },
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "target": {
-                "const": "event"
-              }
-            },
-            "required": [
-              "target"
-            ]
-          },
-          "then": {
-            "required": [
-              "target_event_id"
-            ],
-            "properties": {
-              "after": {
-                "type": "object",
-                "minProperties": 1
-              }
-            }
-          },
-          "else": {
-            "not": {
-              "required": [
-                "target_event_id"
-              ]
-            }
-          }
-        },
         {
           "if": {
             "properties": {
