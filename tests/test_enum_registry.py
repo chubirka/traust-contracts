@@ -67,8 +67,9 @@ def test_usage_follows_refs_across_files():
 #
 # A small synthetic registry, deliberately unrelated to any real vocabulary,
 # with one example of each kind of replacement: rename (crimson -> red), merge
-# (crimson and scarlet -> red), split (navy -> colour.blue + shade.dark) and a
-# one-way drop (teal, with no replacement).
+# (crimson and scarlet -> red), split (navy -> colour.blue + shade.dark), a
+# one-way drop (teal, with no replacement) and a retired value (maroon: removed
+# from values in a major release, but its mapping kept for old events).
 
 
 def _synthetic() -> dict[str, dict]:
@@ -96,6 +97,11 @@ def _synthetic() -> dict[str, dict]:
                     ]
                 },
                 "teal": {"replaced_by": [], "note": "One-way: readers keep the original string."},
+                "maroon": {
+                    "replaced_by": [{"enum": "colour", "value": "red"}],
+                    "retired": True,
+                    "note": "Removed from values in a major release; old events still normalise.",
+                },
             },
         },
         "shade.json": {
@@ -179,6 +185,28 @@ def _colour(files):
                 {"enum": "shade", "value": "light"}
             ),
             "is replaced twice in 'shade'",
+        ),
+        (
+            "a retired value has left values",
+            lambda f: _colour(f)["values"].append("maroon"),
+            "retired 'maroon' is still in values",
+        ),
+        (
+            "a value removed from values must be marked retired",
+            lambda f: _colour(f)["deprecated"]["maroon"].pop("retired"),
+            'mark it "retired": true',
+        ),
+        (
+            "retired is a boolean",
+            lambda f: _colour(f)["deprecated"]["maroon"].__setitem__("retired", "yes"),
+            "retired must be true or false",
+        ),
+        (
+            "nothing is replaced by a retired value",
+            lambda f: _colour(f)["deprecated"]["crimson"]["replaced_by"].__setitem__(
+                0, {"enum": "colour", "value": "maroon"}
+            ),
+            "which is not a value of 'colour'",
         ),
         (
             "unknown keys are typos",

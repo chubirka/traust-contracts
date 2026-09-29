@@ -27,11 +27,18 @@ Registry files may also carry three optional fields, checked by
 - `standard`: `{"name", "relationship": "exact"|"adapted", "url"?, "note"?}`
   (an adapted standard needs a note saying what differs), or
   `{"none": "<why no standard applies>"}`.
-- `deprecated`: `{"<value>": {"replaced_by": [{"enum", "value"}], "note"?}}`.
-  Several replacements express a value that splits across vocabularies; an
-  empty list is a one-way drop, and readers keep the original string. A
-  replacement must be a registry value that is not itself deprecated, so
-  replacements never chain or loop.
+- `deprecated`: `{"<value>": {"replaced_by": [{"enum", "value"}], "note"?,
+  "retired"?}}`. Several replacements express a value that splits across
+  vocabularies; an empty list is a one-way drop, and readers keep the original
+  string. A replacement must be a current registry value that is not itself
+  deprecated, so replacements never chain or loop.
+
+  A deprecated value has two stages. While *deprecated* it stays in `values`
+  (the schema still accepts it), readers normalise it, and writers stop
+  emitting it. Once *retired* (`"retired": true`, in a major release) it is
+  removed from `values`, so the schema rejects new writes. Its entry stays
+  here for good, because ledger events keep their original strings and
+  readers must always be able to normalise them.
 
 These fields only describe vocabulary. Rules that depend on other fields, and
 moves between fields, belong in the code or schema change that needs them.
@@ -238,13 +245,24 @@ def format_problems(registry: dict[str, dict]) -> list[str]:
             out.append(f"{fname}: deprecated must map each deprecated value to its replacement")
             continue
         for value, spec in deprecated.items():
-            if value not in values:
-                out.append(f"{fname}: deprecated {value!r} is not one of the file's values")
             if not isinstance(spec, dict) or not isinstance(spec.get("replaced_by"), list):
                 out.append(f"{fname}: deprecated {value!r} needs a replaced_by list")
                 continue
-            if set(spec) - {"replaced_by", "note"}:
+            if set(spec) - {"replaced_by", "note", "retired"}:
                 out.append(f"{fname}: deprecated {value!r} has unknown keys")
+            retired = spec.get("retired", False)
+            if not isinstance(retired, bool):
+                out.append(f"{fname}: deprecated {value!r}: retired must be true or false")
+            elif retired and value in values:
+                out.append(
+                    f"{fname}: retired {value!r} is still in values; retiring a value "
+                    "removes it from values, in a major release"
+                )
+            elif not retired and value not in values:
+                out.append(
+                    f"{fname}: deprecated {value!r} is not one of the file's values "
+                    '(if a major release removed it, mark it "retired": true)'
+                )
             seen: set[str] = set()
             for target in spec["replaced_by"]:
                 if not isinstance(target, dict) or set(target) != {"enum", "value"}:

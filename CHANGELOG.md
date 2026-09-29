@@ -2,6 +2,21 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.44.0]
+
+### Added
+
+- **Retired values.** A `deprecated` entry may carry `"retired": true`: the
+  value was removed from `values` in a major release, so the schema rejects
+  new writes, but its entry and `replaced_by` stay so readers can still
+  normalise old ledger events, which keep their original strings for good.
+  - A deprecated value that is still in `values` must not be marked retired.
+  - A value missing from `values` must be marked retired.
+  - Nothing may be replaced by a retired value.
+
+  Before this, removing a value from `values` made its `deprecated` entry
+  fail the check, which forced the reader mapping to be deleted with it.
+
 ## [0.43.0]
 
 ### Added
