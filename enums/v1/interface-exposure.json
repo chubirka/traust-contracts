@@ -1,0 +1,15 @@
+{
+  "name": "interface_exposure",
+  "source_schema": "isolation-review.schema.json#/definitions/interface/properties/exposure",
+  "description": "Values of `exposure` in isolation-review.schema.json.",
+  "values": [
+    "public",
+    "tenant",
+    "partner",
+    "internal"
+  ],
+  "used_in_schemas": [
+    "isolation-review.schema.json",
+    "threat-model.schema.json"
+  ]
+}

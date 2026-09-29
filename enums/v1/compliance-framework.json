@@ -1,0 +1,17 @@
+{
+  "name": "compliance_framework",
+  "source_schema": "compliance-assessment.schema.json#/properties/metadata/properties/frameworks/items/properties/id",
+  "description": "Values of `id` in compliance-assessment.schema.json.",
+  "values": [
+    "nist-800-53-rev5",
+    "fedramp-high",
+    "fedramp-moderate",
+    "pci-dss-v4",
+    "soc2-tsc",
+    "gdpr-technical"
+  ],
+  "used_in_schemas": [
+    "compliance-assessment.schema.json",
+    "compliance-scope.schema.json"
+  ]
+}

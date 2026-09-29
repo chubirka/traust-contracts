@@ -2,6 +2,27 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.41.0]
+
+### Added
+
+- **Every schema enum is now registered.** 101 value sets that were defined
+  only inline in the schemas (127 sites) each get an `enums/v1` file, so
+  `enums/v1` now covers every string enum in `schemas/v1` and `config/v1`.
+  Nothing in any schema changes; each file's `source_schema` points at the
+  first site and `used_in_schemas` is derived. Numeric enums
+  (format-version switches) stay out of scope.
+- `tests/test_enum_registry.py` now **fails** on any schema enum whose value
+  set matches no registry file (previously a warning).
+
+### Changed
+
+- **SDK codegen impact.** Generators that emit one type per registry file and
+  retype fields whose values match (as the Go SDK does) will produce new enum
+  types and retype the matching fields on their next regeneration. One value
+  (`source+runtime`, `pqc_readiness_assessment_basis`) is not a valid
+  identifier fragment and needs sanitising by such generators.
+
 ## [0.40.0]
 
 ### Changed

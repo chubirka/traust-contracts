@@ -1,0 +1,14 @@
+{
+  "name": "budget_enforcement",
+  "source_schema": "budget-policy.schema.json#/properties/budget_policy/properties/enforcement",
+  "description": "Values of `enforcement` in budget-policy.schema.json.",
+  "values": [
+    "none",
+    "observe",
+    "advisory",
+    "enforced"
+  ],
+  "used_in_schemas": [
+    "budget-policy.schema.json"
+  ]
+}

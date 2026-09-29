@@ -1,0 +1,15 @@
+{
+  "name": "isolation_check_result",
+  "source_schema": "isolation-review.schema.json#/definitions/dimension/properties/result",
+  "description": "Values of `result` in isolation-review.schema.json.",
+  "values": [
+    "yes",
+    "partial",
+    "no",
+    "na"
+  ],
+  "used_in_schemas": [
+    "isolation-review.schema.json",
+    "pqc-readiness.schema.json"
+  ]
+}

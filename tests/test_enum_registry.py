@@ -5,15 +5,15 @@ naming a schema file that does not exist, a usage list claiming a schema that
 defines a different enum). ci/enum_registry.py derives them; this test fails
 when a registered file disagrees with what it derives.
 
-Schema enums with no registered file are reported as a warning for now. Once
-every inline enum is registered, the warning becomes a failure.
+Every schema enum must also be registered: a site whose value set matches no
+enums/v1 file fails the build, so a new vocabulary cannot enter a schema without
+entering the registry (and, through it, the generated SDK enum types).
 """
 
 from __future__ import annotations
 
 import importlib.util
 import sys
-import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,15 +28,12 @@ def test_registry_metadata_matches_schemas():
     assert not found, "run `python3 ci/enum_registry.py --write`, then fix:\n" + "\n".join(found)
 
 
-def test_unregistered_schema_enums_are_reported():
+def test_every_schema_enum_is_registered():
     loose = enum_registry.unregistered(enum_registry.load_schemas(), enum_registry.load_registry())
-    if loose:
-        sets = len({site.values for site in loose})
-        warnings.warn(
-            f"{len(loose)} schema enum site(s) ({sets} value sets) have no enums/v1 file; "
-            "list them with `python3 ci/enum_registry.py`",
-            stacklevel=1,
-        )
+    assert not loose, (
+        "schema enums with no enums/v1 file (add one, then run "
+        "`python3 ci/enum_registry.py --write`):\n" + "\n".join(site.ref for site in loose)
+    )
 
 
 def test_resolve_follows_json_pointer_escapes():

@@ -1,0 +1,14 @@
+{
+  "name": "remediation_check_outcome",
+  "source_schema": "remediation.schema.json#/$defs/check/properties/outcome",
+  "description": "Values of `outcome` in remediation.schema.json.",
+  "values": [
+    "pass",
+    "fail",
+    "skip",
+    "error"
+  ],
+  "used_in_schemas": [
+    "remediation.schema.json"
+  ]
+}
