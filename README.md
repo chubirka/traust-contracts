@@ -130,6 +130,29 @@ ledger's separate guard installation idempotent.
 `schemas/v1/layer.schema.json` is the portable complete-layer document contract
 across file, SQLite, and PostgreSQL backends.
 
+## Enum registry
+
+`enums/v1/` holds one file per controlled vocabulary. Every string `enum` in
+`schemas/v1` and `config/v1` must match a registry file by its exact set of
+values; `tests/test_enum_registry.py` enforces this. `ci/enum_registry.py
+--write` derives each file's `used_in_schemas`, and `--check` verifies the
+rest.
+
+A registry file has `name`, `source_schema`, `description`, `values` and
+`used_in_schemas`, plus these optional fields:
+
+| Field | Meaning |
+|---|---|
+| `definitions` | What each value means; one entry per value |
+| `standard` | The standard followed: `name`, `relationship` (`exact` or `adapted`, where adapted needs a `note`) and an optional `url`. Or `{"none": "<why>"}` |
+| `deprecated` | For each deprecated value, `replaced_by`: the registry values (`{enum, value}`) that replace it. Several entries split a value across vocabularies; an empty list is a one-way drop, where readers keep the original string. A replacement is never itself deprecated. |
+
+Vocabulary changes are made in place: new values are added (a minor
+release), and old values stay valid, marked `deprecated`. They are removed
+only in a major release. Rules that depend on other fields, and moves
+between fields, are not registry data; they belong in the code or schema
+change that needs them.
+
 ## Validate an artifact
 
 ```bash

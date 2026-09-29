@@ -2,6 +2,29 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.43.0]
+
+### Added
+
+- **Optional `definitions`, `standard` and `deprecated` fields on `enums/v1`
+  registry files.** They let the registry say what each value means, which
+  standard a vocabulary follows, and which values are deprecated in favour of
+  which (`replaced_by`: one or more `{enum, value}` targets, or none for a
+  one-way drop). This lets vocabulary change in place, with no separate
+  version tree. No existing registry file changes, and generators that read
+  `name`/`description`/`values` are unaffected.
+- `ci/enum_registry.py` checks the new fields:
+  - `definitions` covers each value exactly once
+  - an adapted standard has a note
+  - deprecated keys are the file's own values
+  - every replacement exists and is not itself deprecated
+  - a split lands in each enum once
+  - unknown top-level keys are rejected, which catches typos
+
+  `tests/test_enum_registry.py` covers each rule against a synthetic registry
+  and runs them on every real file.
+- README section on the enum registry.
+
 ## [0.42.0]
 
 ### Changed
