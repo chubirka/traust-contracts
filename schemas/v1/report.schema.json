@@ -576,7 +576,7 @@
                 "deb",
                 "apk"
               ],
-              "description": "Mirrors impact-analysis metadata.ecosystem, plus distro ecosystems for C/C++."
+              "description": "Package ecosystem; the same vocabulary as impact-analysis metadata.ecosystem (enums/v1/ecosystem.json), including the distro ecosystems rpm/deb/apk for C/C++."
             },
             "purl": {
               "type": "string",

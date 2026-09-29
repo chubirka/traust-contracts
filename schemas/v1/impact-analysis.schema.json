@@ -61,9 +61,12 @@
             "nuget",
             "actions",
             "docker",
-            "helm"
+            "helm",
+            "rpm",
+            "deb",
+            "apk"
           ],
-          "description": "Package ecosystem of the affected module. actions/docker/helm are manifest-level dependency surfaces (no reachability tier). Optional (defaults to go semantics when absent) and non-breaking."
+          "description": "Package ecosystem of the affected module; the same vocabulary as report.schema.json finding.dependency.ecosystem (enums/v1/ecosystem.json). actions/docker/helm are manifest-level dependency surfaces (no reachability tier); rpm/deb/apk are distro ecosystems for C/C++ packages (no reachability tier). Optional (defaults to go semantics when absent) and non-breaking."
         },
         "vulnerable_range": {
           "type": "string",
