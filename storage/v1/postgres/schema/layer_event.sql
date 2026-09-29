@@ -63,11 +63,11 @@ CREATE TABLE IF NOT EXISTS traust_storage.layer_event (
     -- both with their own sub-shape, and no view cuts by them yet.
     alias JSONB,
     finding JSONB,
-    -- An administrative correction of data this layer already committed
+    -- An administrative restatement of data this layer already committed
     -- to. Kept whole for the same reason as the two above, and queryable
-    -- because "which values were corrected, by whom, under what ticket"
-    -- is the first question asked of a ledger that admits corrections.
-    correction JSONB,
+    -- because "which values were restated, by whom, under what ticket"
+    -- is the first question asked of a ledger that admits restatements.
+    restatement JSONB,
     PRIMARY KEY (binding_id, event_id),
     FOREIGN KEY (binding_id, artifact_digest)
         REFERENCES traust_storage.artifact_binding(binding_id, artifact_digest)

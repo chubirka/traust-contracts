@@ -26,7 +26,7 @@ INSERT INTO layer_event (
     risk_profile_source,
     alias,
     finding,
-    correction
+    restatement
 )
 VALUES (
     :binding_id,
@@ -56,6 +56,6 @@ VALUES (
     :risk_profile_source,
     :alias,
     :finding,
-    :correction
+    :restatement
 )
 ON CONFLICT (binding_id, event_id) DO NOTHING;

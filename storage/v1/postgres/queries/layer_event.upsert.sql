@@ -26,7 +26,7 @@ INSERT INTO traust_storage.layer_event (
     risk_profile_source,
     alias,
     finding,
-    correction
+    restatement
 )
 VALUES (
     %(binding_id)s,
@@ -56,6 +56,6 @@ VALUES (
     %(risk_profile_source)s,
     %(alias)s,
     %(finding)s,
-    %(correction)s
+    %(restatement)s
 )
 ON CONFLICT (binding_id, event_id) DO NOTHING;

@@ -2,49 +2,28 @@
 
 All notable changes to traust-contracts are documented here.
 
-## [0.38.1]
-
-### Changed
-
-- **`CorrectionTarget` covers layer metadata only.** Removed the `event` target
-  and the `target_event_id` field from `$defs/event_correction`. Correcting an
-  event's content meant applying `after` as a read-time overlay, which is a
-  SECOND read-time transform alongside the v1→v2 normaliser, with no defined
-  ordering between the two (classifier-disposition plan R1 and D13). The ledger
-  already supersedes a wrong determination with a later event, which latest-wins
-  precedence resolves — so the overlay bought nothing and would have required
-  every raw `layer["events"]` reader in traust-engine and traust to opt in.
-- Shipped in the same release cycle as 0.38.0 (untagged at the time), so no
-  consumer can have written an `event`-target correction.
-
-## [0.38.0]
+## [0.39.0]
 
 ### Added
 
-- **`correction` event vocabulary** (`$defs/event_correction`, `source_type`
-  `correction`, `CorrectionTarget`/`CorrectionReason` enums, `LayerCorrection`
-  model). An administrative correction of data a layer already committed to:
-  the signature-bound metadata digests (`claim_hashes`, `audit_report_sha256`,
-  `artifact_digests`), `finding_aliases`, or fields on a prior event. Like
-  `rebaseline`, it is NOT an evidence class and carries an empty disposition.
-  It exists because a correction previously had nowhere to live: event payloads
-  are immutable, while the metadata digests were rewritable with no record of
-  the prior value, who changed it, or why — leaving an authorised correction
-  indistinguishable from tampering after the fact.
-- `layer_event.correction` column (both dialects) and its upsert binding, so
-  "which values were corrected, by whom, under what ticket" is answerable from
-  SQL rather than only from the blob.
+- `restatement` event vocabulary: `source_type` `restatement`,
+  `$defs/event_restatement`, `RestatementTarget`, `RestatementReason`,
+  `LayerRestatement`, `RestatementAuthority`, and a `layer_event.restatement`
+  column in both dialects. An administrative restatement of signature-bound
+  layer metadata (`claim_hashes`, `audit_report_sha256`, `artifact_digests`,
+  `finding_aliases`), recording the prior value, the actor and a ticket. Like
+  `rebaseline` it is not an evidence class and carries an empty disposition.
+  Event content is not a target: events are immutable and are superseded by a
+  later event.
 
 ### Fixed
 
-- `LayerEvent` now declares `alias`, `finding`, and `correction`. `ContractModel`
-  ignores unknown keys, so a block declared only in the schema was silently
-  dropped by every `from_dict`/`to_dict` round-trip — which is how `alias` and
-  `finding` became unwritable through the typed path after being added to the
-  schema.
-- `SourceType` gained `fuzz_report`, `rebaseline`, and `correction`. The enum had
-  drifted from the schema, so typed code could not name the source types the
-  precedence engine must NOT weigh; a test now pins the two lists together.
+- `LayerEvent` now declares `alias`, `finding`, and `restatement`.
+  `ContractModel` ignores unknown keys, so a block declared only in the schema
+  was silently dropped by every `from_dict`/`to_dict` round-trip — which is how
+  `alias` and `finding` became unwritable through the typed path.
+- `SourceType` gained `fuzz_report`, `rebaseline`, and `restatement`; a test now
+  pins the enum against the schema.
 
 ## [0.37.1]
 

@@ -1297,7 +1297,7 @@ class Store:
                     "risk_profile_source": risk.get("profile_source"),
                     "alias": _json_or_none(event.get("alias")),
                     "finding": _json_or_none(event.get("finding")),
-                    "correction": _json_or_none(event.get("correction")),
+                    "restatement": _json_or_none(event.get("restatement")),
                 },
             )
 

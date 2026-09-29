@@ -35,10 +35,10 @@ class DispositionEmbargo(StrEnum):
     UNCERTAIN = "uncertain"
 
 
-class CorrectionTarget(StrEnum):
-    """Metadata an administrative correction event may correct
-    (layer.schema.json $defs/event_correction). Event content is deliberately
-    absent: events are immutable and are corrected by appending a superseding
+class RestatementTarget(StrEnum):
+    """Metadata an administrative restatement event may replace
+    (layer.schema.json $defs/event_restatement). Event content is deliberately
+    absent: events are immutable and are restated by appending a superseding
     determination."""
 
     CLAIM_HASHES = "claim_hashes"
@@ -47,19 +47,19 @@ class CorrectionTarget(StrEnum):
     FINDING_ALIASES = "finding_aliases"
 
 
-#: Correction targets that are signature-bound metadata fields. A write that
-#: changes one of these without a covering correction event is the rewrite the
+#: Restatement targets that are signature-bound metadata fields. A write that
+#: changes one of these without a covering restatement event is the rewrite the
 #: mechanism exists to prevent.
 SIGNED_METADATA_TARGETS = frozenset(
     {
-        CorrectionTarget.CLAIM_HASHES,
-        CorrectionTarget.AUDIT_REPORT_SHA256,
-        CorrectionTarget.ARTIFACT_DIGESTS,
+        RestatementTarget.CLAIM_HASHES,
+        RestatementTarget.AUDIT_REPORT_SHA256,
+        RestatementTarget.ARTIFACT_DIGESTS,
     }
 )
 
 
-class CorrectionReason(StrEnum):
+class RestatementReason(StrEnum):
     DATA_ERROR = "data_error"
     SCHEMA_MIGRATION = "schema_migration"
     BASELINE_REWRITE = "baseline_rewrite"
@@ -175,7 +175,7 @@ class SourceType(StrEnum):
     # They were in the schema enum and missing here, so typed code could not
     # name the two source types that the precedence engine must NOT weigh.
     REBASELINE = "rebaseline"
-    CORRECTION = "correction"
+    RESTATEMENT = "restatement"
 
 
 class ActorKind(StrEnum):

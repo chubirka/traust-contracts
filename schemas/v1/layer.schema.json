@@ -15,7 +15,7 @@
       "$ref": "#/$defs/layer_metadata"
     },
     "events": {
-      "description": "Append-only disposition events, in chronological order. Events are never edited or deleted \u2014 a correction is a new event.",
+      "description": "Append-only disposition events, in chronological order. Events are never edited or deleted \u2014 a restatement is a new event.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/event"
@@ -75,9 +75,9 @@
         "vuln_scan_report",
         "fuzz_report",
         "rebaseline",
-        "correction"
+        "restatement"
       ],
-      "$comment": "correction is NOT an evidence class either: it records that DATA was wrong -- a claim hash, a report digest, an artifact digest map, or a field on a prior event -- and carries an empty disposition plus a `correction` block. It exists because everything else here is immutable: event payloads are append-only and the Merkle leaf binds their full content, so a wrong value can only be superseded, never edited. The signature-bound metadata digests (claim_hashes, audit_report_sha256, artifact_digests) ARE mutable, and before this vocabulary existed they could be rewritten with no record of the prior value, who changed it, or why -- making an authorised correction byte-identical to tampering after the fact. Evidence classes for validity precedence (the cumulative builder): validation_report, verification_report and fuzz_report are execution-verified (class 1) and outrank human static determinations (class 2), which outrank machine static sources incl. triage_report, impact_report and vuln_scan_report (class 3). Recency breaks ties only within a class. fuzz_report is class 1 because a fuzz finding is a crasher WITH a reproducer: the input that triggers it is recorded, so the claim is replayable rather than asserted. A fuzz run that found nothing records no event -- absence of a crash is not evidence of correctness. rebaseline is NOT an evidence class and never participates in validity precedence: it records that a finding was RENAMED, so the alias lives in the Merkle-covered event stream rather than in mutable metadata. Every one of them carries an EMPTY disposition, which is the invariant a consumer should rely on -- a rebaseline event asserts nothing about whether a finding is real."
+      "$comment": "restatement is NOT an evidence class either: it records that DATA was wrong -- a claim hash, a report digest, an artifact digest map, or a field on a prior event -- and carries an empty disposition plus a `restatement` block. It exists because everything else here is immutable: event payloads are append-only and the Merkle leaf binds their full content, so a wrong value can only be superseded, never edited. The signature-bound metadata digests (claim_hashes, audit_report_sha256, artifact_digests) ARE mutable, and before this vocabulary existed they could be rewritten with no record of the prior value, who changed it, or why -- making an authorised restatement byte-identical to tampering after the fact. Evidence classes for validity precedence (the cumulative builder): validation_report, verification_report and fuzz_report are execution-verified (class 1) and outrank human static determinations (class 2), which outrank machine static sources incl. triage_report, impact_report and vuln_scan_report (class 3). Recency breaks ties only within a class. fuzz_report is class 1 because a fuzz finding is a crasher WITH a reproducer: the input that triggers it is recorded, so the claim is replayable rather than asserted. A fuzz run that found nothing records no event -- absence of a crash is not evidence of correctness. rebaseline is NOT an evidence class and never participates in validity precedence: it records that a finding was RENAMED, so the alias lives in the Merkle-covered event stream rather than in mutable metadata. Every one of them carries an EMPTY disposition, which is the invariant a consumer should rely on -- a rebaseline event asserts nothing about whether a finding is real."
     },
     "actor": {
       "type": "object",
@@ -537,8 +537,8 @@
         "finding": {
           "$ref": "#/$defs/event_finding"
         },
-        "correction": {
-          "$ref": "#/$defs/event_correction"
+        "restatement": {
+          "$ref": "#/$defs/event_restatement"
         }
       },
       "allOf": [
@@ -557,7 +557,7 @@
                     "not": {
                       "enum": [
                         "rebaseline",
-                        "correction"
+                        "restatement"
                       ]
                     }
                   }
@@ -585,7 +585,7 @@
                 ],
                 "properties": {
                   "type": {
-                    "const": "correction"
+                    "const": "restatement"
                   }
                 }
               }
@@ -601,17 +601,17 @@
         }
       ],
       "dependentSchemas": {
-        "correction": {
+        "restatement": {
           "properties": {
             "source": {
               "properties": {
                 "type": {
-                  "const": "correction"
+                  "const": "restatement"
                 }
               }
             }
           },
-          "$comment": "A correction block may ride ONLY on a correction-typed event, so no ordinary determination can smuggle one. The converse -- a correction-typed event MUST carry the block -- is enforced by the ledger write path, not here: expressing it needs a conditional `required`, which the compatibility gate reads as a breaking change even though no artifact predating the `correction` source type can trip it. A correction-typed event with no block is inert: empty disposition, not an evidence class, nothing for a verifier to apply."
+          "$comment": "A restatement block may ride ONLY on a restatement-typed event, so no ordinary determination can smuggle one. The converse -- a restatement-typed event MUST carry the block -- is enforced by the ledger write path, not here: expressing it needs a conditional `required`, which the compatibility gate reads as a breaking change even though no artifact predating the `restatement` source type can trip it. A restatement-typed event with no block is inert: empty disposition, not an evidence class, nothing for a verifier to apply."
         }
       }
     },
@@ -806,9 +806,9 @@
         }
       }
     },
-    "event_correction": {
+    "event_restatement": {
       "type": "object",
-      "description": "An administrative correction of layer metadata a signature binds: the digests (claim_hashes, audit_report_sha256, artifact_digests) and finding_aliases. Mutable, but rewriting one destroys the prior value, so an authorised correction and a tampering rewrite were previously indistinguishable. Appending this event moves the Merkle root, which drops the stale signature and re-signs through the normal write path -- no new signature format is needed, because format 4 already binds the root and all three digests. Corrections stack in append order; a wrong correction is superseded by another, never removed. EVENT CONTENT IS NOT A TARGET: events are immutable and are corrected by appending a superseding determination, which latest-wins precedence already resolves. A read-time overlay would be a second read-time transform competing with the v1->v2 normaliser, with no defined ordering between them.",
+      "description": "An administrative restatement of layer metadata a signature binds: the digests (claim_hashes, audit_report_sha256, artifact_digests) and finding_aliases. Mutable, but rewriting one destroys the prior value, so an authorised restatement and a tampering rewrite were previously indistinguishable. Appending this event moves the Merkle root, which drops the stale signature and re-signs through the normal write path -- no new signature format is needed, because format 4 already binds the root and all three digests. Restatements stack in append order; a wrong restatement is superseded by another, never removed. EVENT CONTENT IS NOT A TARGET: events are immutable and are restated by appending a superseding determination, which latest-wins precedence already resolves. A read-time overlay would be a second read-time transform competing with the v1->v2 normaliser, with no defined ordering between them.",
       "required": [
         "target",
         "reason",
@@ -825,7 +825,7 @@
             "artifact_digests",
             "finding_aliases"
           ],
-          "description": "The metadata field being corrected. The correction is the authority for that field's new value, and a verifier replays the chain to check it."
+          "description": "The metadata field being restated. The restatement is the authority for that field's new value, and a verifier replays the chain to check it."
         },
         "reason": {
           "type": "string",
@@ -846,10 +846,10 @@
           "minLength": 1
         },
         "before": {
-          "description": "The value as it stood, verbatim. Optional only when the field had no prior value; a writer MUST refuse a correction whose `before` disagrees with what is actually stored, which is what stops a stale correction from silently clobbering a newer one."
+          "description": "The value as it stood, verbatim. Optional only when the field had no prior value; a writer MUST refuse a restatement whose `before` disagrees with what is actually stored, which is what stops a stale restatement from silently clobbering a newer one."
         },
         "after": {
-          "description": "The corrected value. For target 'event' this is a partial map of field -> corrected value, not a whole event."
+          "description": "The restated value for the named metadata field."
         },
         "authority": {
           "type": "object",
@@ -861,7 +861,7 @@
             "ticket": {
               "type": "string",
               "minLength": 1,
-              "description": "The change record this correction was authorised under. Required: an unattributed correction is indistinguishable from the rewrite this mechanism exists to prevent."
+              "description": "The change record this restatement was authorised under. Required: an unattributed restatement is indistinguishable from the rewrite this mechanism exists to prevent."
             },
             "approved_by": {
               "type": "string",

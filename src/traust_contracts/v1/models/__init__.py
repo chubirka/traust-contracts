@@ -13,12 +13,12 @@ from traust_contracts.v1.models.finding import (
 )
 from traust_contracts.v1.models.impact import ImpactAnalysis
 from traust_contracts.v1.models.layer import (
-    CorrectionAuthority,
     ExternalRef,
     Layer,
-    LayerCorrection,
     LayerEvent,
     LayerMetadata,
+    LayerRestatement,
+    RestatementAuthority,
     ReviewItem,
 )
 from traust_contracts.v1.models.metrics import MetricsRecord
@@ -46,7 +46,6 @@ __all__ = [
     "AdapterSummary",
     "ComplianceAssessment",
     "ComplianceScope",
-    "CorrectionAuthority",
     "DependencyProvenance",
     "Disposition",
     "EvidenceBlock",
@@ -54,9 +53,9 @@ __all__ = [
     "Finding",
     "ImpactAnalysis",
     "Layer",
-    "LayerCorrection",
     "LayerEvent",
     "LayerMetadata",
+    "LayerRestatement",
     "Location",
     "MetricsRecord",
     "NegativeResult",
@@ -64,6 +63,7 @@ __all__ = [
     "RefutedRegister",
     "Remediation",
     "Report",
+    "RestatementAuthority",
     "ReviewItem",
     "ScanFinding",
     "ScanMetadata",
