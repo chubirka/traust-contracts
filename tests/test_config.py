@@ -14,6 +14,7 @@ from traust_contracts.config import (
     MANIFEST,
     TRAUST_CONFIG_HOME_ENV,
     DeploymentConfigMissing,
+    ObjectStoreConfig,
     StorageConfig,
     config_completeness_audit,
     config_path,
@@ -47,6 +48,7 @@ def test_manifest_covers_harness_context_sections():
         "hardening_risk_weights",
         "rpm_distgit_watch",
         "storage",
+        "object_store",
     }
     assert manifest_sections == required
 
@@ -339,3 +341,60 @@ def test_an_engagement_tree_is_still_excluded_from_the_owned_denominator() -> No
         },
     )
     assert config.tree_meta("sidequest-findings").ownership != "owned"
+
+
+# --- object-store.yaml --------------------------------------------------------
+
+_AWS = {"backend": "s3", "region": "us-east-1", "bucket": "traust-artifacts", "prefix": "prod/"}
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        _AWS,
+        {**_AWS, "encryption": {"mode": "sse-s3"}},
+        {
+            **_AWS,
+            "encryption": {
+                "mode": "sse-kms",
+                "kms_key_id": "arn:aws:kms:us-east-1:111122223333:key/example",
+            },
+        },
+        {"backend": "s3", "endpoint": "minio.local:9000", "bucket": "dev-artifacts", "tls": False},
+        {**_AWS, "max_object_bytes": 1048576},
+    ],
+)
+def test_object_store_section_loads(tmp_path: Path, data: dict) -> None:
+    path = tmp_path / "object-store.yaml"
+    path.write_text(yaml.safe_dump(data), encoding="utf-8")
+    section = load_section("object_store", config_home=tmp_path, required=True)
+    assert isinstance(section, ObjectStoreConfig)
+    assert section.bucket == data["bucket"]
+    assert section.tls is data.get("tls", True)
+    assert section.source_sha == hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+
+
+@pytest.mark.parametrize(
+    ("data", "why"),
+    [
+        ({"backend": "s3", "bucket": "traust-artifacts"}, "AWS S3 needs a region"),
+        ({**_AWS, "backend": "gcs"}, "only s3 is supported"),
+        ({**_AWS, "bucket": "Not_A_Bucket"}, "bucket naming"),
+        ({**_AWS, "prefix": "prod"}, "prefix ends in /"),
+        ({**_AWS, "endpoint": "https://minio.local"}, "endpoint has no scheme"),
+        ({**_AWS, "encryption": {"mode": "sse-kms"}}, "sse-kms needs a key"),
+        ({**_AWS, "secret_access_key": "x"}, "credentials are never config"),
+        ({**_AWS, "access_key_id": "x"}, "credentials are never config"),
+    ],
+)
+def test_object_store_section_rejects(tmp_path: Path, data: dict, why: str) -> None:
+    (tmp_path / "object-store.yaml").write_text(yaml.safe_dump(data), encoding="utf-8")
+    with pytest.raises(Exception):  # noqa: B017 - the loader's validation error, whatever its type
+        load_section("object_store", config_home=tmp_path, required=True)
+
+
+def test_context_object_store_is_optional(tmp_path: Path) -> None:
+    _write_minimal_config(tmp_path)
+    assert load_context(config_home=tmp_path).object_store is None
+    (tmp_path / "object-store.yaml").write_text(yaml.safe_dump(_AWS), encoding="utf-8")
+    assert load_context(config_home=tmp_path).object_store.bucket == "traust-artifacts"

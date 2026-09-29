@@ -23,7 +23,7 @@ import json
 import os
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import jsonschema
 import yaml
@@ -448,6 +448,31 @@ class StorageConfig(_Section):
     dsn: str = Field(repr=False)
 
 
+class ObjectStoreEncryption(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: Literal["bucket-default", "sse-s3", "sse-kms"]
+    kms_key_id: str | None = None
+
+
+class ObjectStoreConfig(_Section):
+    """Where storage/v1 artifact bytes live (object-store.yaml).
+
+    storage/v1 records only digests and byte sizes; the bytes are kept here
+    under ``<prefix>sha256/<digest>``. Holds no credentials: those come from the
+    environment or the workload's identity.
+    """
+
+    backend: Literal["s3"]
+    bucket: str
+    endpoint: str | None = None
+    region: str | None = None
+    prefix: str = ""
+    tls: bool = True
+    encryption: ObjectStoreEncryption | None = None
+    max_object_bytes: int | None = None
+
+
 class Locations(_Section):
     """Where the harness reads/writes runtime data. Estate config, not engine
     knowledge — every field is a local path or a location URI. Owned wholly by
@@ -540,6 +565,9 @@ MANIFEST: tuple[ConfigFile, ...] = (
     ),
     ConfigFile("locations.yaml", "locations", False, "yaml", "locations", Locations),
     ConfigFile("storage.yaml", "storage", False, "yaml", "storage", StorageConfig),
+    ConfigFile(
+        "object-store.yaml", "object_store", False, "yaml", "object-store", ObjectStoreConfig
+    ),
 )
 
 
@@ -573,6 +601,7 @@ class HarnessContext(BaseModel):
     signing_pubkey: Path | None = None
     locations: Locations | None = None
     storage: StorageConfig | None = None
+    object_store: ObjectStoreConfig | None = None
     budget_policy: BudgetPolicy | None = None
     product_map: ProductDefinitionsMap | None = None
     rule_pack_allowlist: RulePackAllowlist | None = None

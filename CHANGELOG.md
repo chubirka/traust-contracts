@@ -2,6 +2,25 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.45.0]
+
+Draft: open questions for review are listed in the PR.
+
+### Added
+
+- **`object-store.yaml` config** (`config/v1/object-store.schema.json`,
+  `ObjectStoreConfig`, `context.object_store`): where storage/v1 artifact
+  bytes live, now that storage/v1 records only digests and sizes. It sets
+  `backend: s3` (AWS S3 or S3-compatible), `bucket`, `region` (required for
+  AWS) or `endpoint`, `prefix`, `tls`, `encryption` (`bucket-default`,
+  `sse-s3`, or `sse-kms` with `kms_key_id`) and `max_object_bytes`.
+  - Objects are keyed `<prefix>sha256/<digest>`.
+  - The file holds no credentials, and unknown keys (such as
+    `secret_access_key`) are rejected, so it can be committed.
+  - It is optional: without it, artifact bytes are not retained.
+- `enums/v1/object-store-encryption.json` registers the encryption modes,
+  with definitions.
+
 ## [0.44.0]
 
 ### Added

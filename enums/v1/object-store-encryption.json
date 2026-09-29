@@ -1,0 +1,24 @@
+{
+  "name": "object_store_encryption",
+  "source_schema": "object-store.schema.json#/properties/encryption/properties/mode",
+  "description": "Server-side encryption applied to artifact objects the traust SDKs write.",
+  "values": [
+    "bucket-default",
+    "sse-s3",
+    "sse-kms"
+  ],
+  "definitions": {
+    "bucket-default": "No encryption header is sent; the bucket's default encryption policy applies.",
+    "sse-s3": "Server-side encryption with keys managed by the object store (SSE-S3).",
+    "sse-kms": "Server-side encryption with a customer-managed KMS key (SSE-KMS); requires kms_key_id."
+  },
+  "standard": {
+    "name": "Amazon S3 server-side encryption",
+    "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html",
+    "relationship": "adapted",
+    "note": "bucket-default names the absence of a per-object header; S3-compatible stores implement the same SSE-S3 and SSE-KMS headers."
+  },
+  "used_in_schemas": [
+    "object-store.schema.json"
+  ]
+}

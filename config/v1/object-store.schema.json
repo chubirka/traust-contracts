@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/traust-contracts/config/v1/object-store.schema.json",
+  "title": "Object Store Configuration",
+  "description": "Optional object-store.yaml in the config home: where storage/v1 artifact bytes live. storage/v1 records only each artifact's digest and byte size; the bytes are kept in this object store under <prefix>sha256/<digest>. Holds no credentials; they come from the environment or the workload's identity, so the file is safe to commit. Absence means artifact bytes are not retained and typed reads are unavailable.",
+  "type": "object",
+  "required": ["backend", "bucket"],
+  "additionalProperties": false,
+  "properties": {
+    "backend": {
+      "enum": ["s3"],
+      "description": "Object store protocol. s3 covers AWS S3 and S3-compatible stores (ODF/Ceph RGW, MinIO)."
+    },
+    "endpoint": {
+      "type": "string",
+      "pattern": "^[^\\s/]+$",
+      "description": "host[:port] of an S3-compatible endpoint, without a scheme. Omit for AWS S3."
+    },
+    "region": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Bucket region. Required when endpoint is omitted (AWS S3)."
+    },
+    "bucket": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$",
+      "description": "Bucket that holds the artifacts."
+    },
+    "prefix": {
+      "type": "string",
+      "pattern": "^([A-Za-z0-9._-]+/)*$",
+      "default": "",
+      "description": "Key prefix ending in /, e.g. prod/, so several environments can share a bucket."
+    },
+    "tls": {
+      "type": "boolean",
+      "default": true,
+      "description": "Use TLS. Disable only for local test endpoints."
+    },
+    "encryption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "enum": ["bucket-default", "sse-s3", "sse-kms"],
+          "description": "Server-side encryption for written objects. bucket-default leaves it to the bucket policy."
+        },
+        "kms_key_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "KMS key id or ARN; required for sse-kms."
+        }
+      },
+      "if": {"properties": {"mode": {"const": "sse-kms"}}},
+      "then": {"required": ["kms_key_id"]}
+    },
+    "max_object_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Largest artifact a reader will accept. Readers default to 64 MiB."
+    }
+  },
+  "if": {"not": {"required": ["endpoint"]}},
+  "then": {"required": ["region"]}
+}

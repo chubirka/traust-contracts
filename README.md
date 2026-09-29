@@ -28,6 +28,11 @@ point. One loader → no two callers disagree about “what the config is.”
 Optional `storage.yaml` (e.g. `dsn: postgresql://localhost/traust`) loads as
 `context.storage`; `load_section("storage")` provides narrow access. Callers open
 connections; `Store` receives them and never resolves configuration.
+Optional `object-store.yaml` loads as `context.object_store`: where storage/v1
+artifact bytes live (`backend: s3`, `bucket`, `region` or `endpoint`, `prefix`,
+`tls`, `encryption`). storage/v1 records only digests and sizes; the bytes are
+kept under `<prefix>sha256/<digest>`. The file holds no credentials, which come
+from the environment or the workload's identity, so it can be committed.
 End-to-end architecture: `traust/docs/architecture.md` → *Configuration & context*.
 
 ## Install
