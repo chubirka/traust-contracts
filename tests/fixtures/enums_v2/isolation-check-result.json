@@ -1,0 +1,73 @@
+{
+  "name": "isolation_check_result",
+  "description": "Outcome of an isolation or PQC readiness check. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "yes",
+    "partial",
+    "no",
+    "not_applicable"
+  ],
+  "definitions": {
+    "yes": "yes (illustrative).",
+    "partial": "partial (illustrative).",
+    "no": "no (illustrative).",
+    "not_applicable": "not_applicable (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "isolation_check_result"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "isolation_check_result",
+        "value": "yes"
+      },
+      "to": [
+        {
+          "enum": "isolation_check_result",
+          "value": "yes"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "isolation_check_result",
+        "value": "partial"
+      },
+      "to": [
+        {
+          "enum": "isolation_check_result",
+          "value": "partial"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "isolation_check_result",
+        "value": "no"
+      },
+      "to": [
+        {
+          "enum": "isolation_check_result",
+          "value": "no"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "isolation_check_result",
+        "value": "na"
+      },
+      "to": [
+        {
+          "enum": "isolation_check_result",
+          "value": "not_applicable"
+        }
+      ]
+    }
+  ]
+}

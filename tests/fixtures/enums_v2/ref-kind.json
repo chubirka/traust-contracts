@@ -1,0 +1,79 @@
+{
+  "name": "ref_kind",
+  "description": "What kind of git ref was audited? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "branch",
+    "tag",
+    "commit",
+    "stream"
+  ],
+  "definitions": {
+    "branch": "branch (illustrative).",
+    "tag": "tag (illustrative).",
+    "commit": "commit (illustrative).",
+    "stream": "stream (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "ref_kind"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "ref_kind",
+        "value": "branch"
+      },
+      "to": [
+        {
+          "enum": "ref_kind",
+          "value": "branch"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "ref_kind",
+        "value": "tag"
+      },
+      "to": [
+        {
+          "enum": "ref_kind",
+          "value": "tag"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "ref_kind",
+        "value": "stream"
+      },
+      "to": [
+        {
+          "enum": "ref_kind",
+          "value": "stream"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "ref_kind",
+        "value": "default"
+      },
+      "to": [
+        {
+          "enum": "ref_kind",
+          "value": "branch"
+        },
+        {
+          "set": {
+            "field": "is_default",
+            "value": true
+          }
+        }
+      ]
+    }
+  ]
+}

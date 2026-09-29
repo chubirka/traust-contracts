@@ -1,0 +1,75 @@
+{
+  "name": "embargo_assessment",
+  "description": "Does the finding need an embargo? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "required",
+    "not_required",
+    "inconclusive"
+  ],
+  "definitions": {
+    "required": "required (illustrative).",
+    "not_required": "not_required (illustrative).",
+    "inconclusive": "inconclusive (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "disposition_embargo"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "disposition_embargo",
+        "value": "required"
+      },
+      "to": [
+        {
+          "enum": "embargo_assessment",
+          "value": "required"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_embargo",
+        "value": "not_required"
+      },
+      "to": [
+        {
+          "enum": "embargo_assessment",
+          "value": "not_required"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_embargo",
+        "value": "uncertain"
+      },
+      "to": [
+        {
+          "enum": "embargo_assessment",
+          "value": "inconclusive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_embargo",
+        "value": "active"
+      },
+      "to": [
+        {
+          "enum": "embargo_assessment",
+          "value": "required"
+        },
+        {
+          "enum": "embargo_state",
+          "value": "embargoed"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "name": "applicability",
+  "description": "Is the finding exploitable in this product? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "under_investigation",
+    "affected",
+    "not_affected",
+    "fixed"
+  ],
+  "definitions": {
+    "under_investigation": "under_investigation (illustrative).",
+    "affected": "affected (illustrative).",
+    "not_affected": "not_affected (illustrative).",
+    "fixed": "fixed (illustrative)."
+  },
+  "standard": {
+    "name": "OpenVEX status",
+    "url": "https://github.com/openvex/spec",
+    "relationship": "exact"
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "impact_classification"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "impact_classification",
+        "value": "affected"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "affected"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "impact_classification",
+        "value": "likely_affected"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "under_investigation"
+        }
+      ],
+      "note": "Or affected at a low evidence grade; pending a decision."
+    },
+    {
+      "from": {
+        "enum": "impact_classification",
+        "value": "not_observed"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "under_investigation"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "impact_classification",
+        "value": "version_not_in_range"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "not_affected"
+        },
+        {
+          "enum": "justification",
+          "value": "vulnerable_code_not_present"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "impact_classification",
+        "value": "not_imported"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "not_affected"
+        },
+        {
+          "enum": "justification",
+          "value": "component_not_present"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "impact_classification",
+        "value": "inconclusive"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "under_investigation"
+        }
+      ]
+    }
+  ]
+}

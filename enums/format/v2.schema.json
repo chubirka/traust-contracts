@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://traust.dev/enums/format/v2.schema.json",
+  "title": "Registry enum, format v2",
+  "description": "One controlled vocabulary in enums/v2, plus the rules that convert v1 values into it. See enums/v2/README.md for how conversions are evaluated. Rules a JSON Schema cannot express (definitions cover every value, every v1 value converts exactly once, targets exist) are checked by ci/enum_v2.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description",
+    "values",
+    "definitions",
+    "standard",
+    "since",
+    "replaces_v1",
+    "aliases_from_v1"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Registry name. The file is enums/v2/<name with _ replaced by ->.json."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The one question this vocabulary answers."
+    },
+    "values": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Allowed values, in presentation order. A plain string list, as in enums/v1, so existing generators can read it."
+    },
+    "definitions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "What each value means. Keys must equal `values` exactly."
+    },
+    "standard": {
+      "description": "The standard this vocabulary follows, or an explicit statement that none applies.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "relationship"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "e.g. \"OpenVEX status\", \"CVSS v4.0 qualitative severity\"."
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "relationship": {
+              "enum": [
+                "exact",
+                "adapted"
+              ],
+              "description": "`exact`: the values are the standard's terms. `adapted`: follows the standard with stated differences."
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Required in practice for `adapted`: what differs and why."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "none"
+          ],
+          "properties": {
+            "none": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Why no standard applies."
+            }
+          }
+        }
+      ]
+    },
+    "since": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "traust-contracts version this file first shipped in."
+    },
+    "replaces_v1": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "v1 registry enums whose values this file converts. Each v1 enum is owned by exactly one v2 file; empty for vocabularies with no v1 predecessor."
+    },
+    "aliases_from_v1": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/alias"
+      },
+      "description": "Conversion rules, one or more per v1 value of every enum in `replaces_v1`. Order matters: for a given v1 value, conditional rules are tried in file order before its single unconditional rule."
+    }
+  },
+  "$defs": {
+    "alias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/v1_value"
+        },
+        "when": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "description": "All conditions must hold. Fields are named relative to the object that holds the v1 value."
+        },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/effect"
+          },
+          "description": "Everything the v1 value becomes. Several effects express a value that splits across vocabularies."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "v1_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enum",
+        "value"
+      ],
+      "properties": {
+        "enum": {
+          "type": "string",
+          "minLength": 1,
+          "description": "v1 registry name."
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field"
+      ],
+      "minProperties": 2,
+      "maxProperties": 2,
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "equals": {
+          "description": "The field equals this JSON value."
+        },
+        "in": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The field equals one of these JSON values."
+        },
+        "matches": {
+          "type": "string",
+          "format": "regex",
+          "description": "The field is a string matching this regular expression (search, not full match)."
+        },
+        "contains_any": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The field is an array holding at least one of these values."
+        }
+      }
+    },
+    "effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enum",
+            "value"
+          ],
+          "properties": {
+            "enum": {
+              "type": "string",
+              "minLength": 1,
+              "description": "v2 registry name; the value lands in whichever field the v2 schema stores that vocabulary in."
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "set"
+          ],
+          "properties": {
+            "set": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "field",
+                "value"
+              ],
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "description": "Literal JSON value for a field that is not a vocabulary (e.g. is_default: true)."
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "drop"
+          ],
+          "properties": {
+            "drop": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The v1 value has no v2 counterpart; say where its information lives instead."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

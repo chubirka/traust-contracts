@@ -1,0 +1,81 @@
+{
+  "name": "review_status",
+  "description": "Where a review-queue item is. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "pending",
+    "accepted",
+    "rejected",
+    "closed_unreviewed"
+  ],
+  "definitions": {
+    "pending": "pending (illustrative).",
+    "accepted": "accepted (illustrative).",
+    "rejected": "rejected (illustrative).",
+    "closed_unreviewed": "closed_unreviewed (illustrative)."
+  },
+  "standard": {
+    "name": "SARIF suppression status",
+    "relationship": "adapted",
+    "note": "Adds closed_unreviewed for items closed without review."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "review_item_status"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "review_item_status",
+        "value": "pending"
+      },
+      "to": [
+        {
+          "enum": "review_status",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "review_item_status",
+        "value": "confirmed"
+      },
+      "to": [
+        {
+          "enum": "review_status",
+          "value": "accepted"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "review_item_status",
+        "value": "rejected"
+      },
+      "when": [
+        {
+          "field": "resolution_note",
+          "matches": "^bulk-closed "
+        }
+      ],
+      "to": [
+        {
+          "enum": "review_status",
+          "value": "closed_unreviewed"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "review_item_status",
+        "value": "rejected"
+      },
+      "to": [
+        {
+          "enum": "review_status",
+          "value": "rejected"
+        }
+      ]
+    }
+  ]
+}

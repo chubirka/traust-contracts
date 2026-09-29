@@ -1,0 +1,81 @@
+{
+  "name": "threat_treatment",
+  "description": "What was done about a modelled threat? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "untreated",
+    "partially_mitigated",
+    "mitigated",
+    "accepted",
+    "transferred",
+    "avoided",
+    "not_applicable"
+  ],
+  "definitions": {
+    "untreated": "untreated (illustrative).",
+    "partially_mitigated": "partially_mitigated (illustrative).",
+    "mitigated": "mitigated (illustrative).",
+    "accepted": "accepted (illustrative).",
+    "transferred": "transferred (illustrative).",
+    "avoided": "avoided (illustrative).",
+    "not_applicable": "not_applicable (illustrative)."
+  },
+  "standard": {
+    "name": "ISO/IEC 27005 risk treatment",
+    "relationship": "adapted",
+    "note": "Splits modification into partially_mitigated and mitigated."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "threat-status"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "threat-status",
+        "value": "unmitigated"
+      },
+      "to": [
+        {
+          "enum": "threat_treatment",
+          "value": "untreated"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-status",
+        "value": "partially_mitigated"
+      },
+      "to": [
+        {
+          "enum": "threat_treatment",
+          "value": "partially_mitigated"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-status",
+        "value": "mitigated"
+      },
+      "to": [
+        {
+          "enum": "threat_treatment",
+          "value": "mitigated"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-status",
+        "value": "risk_accepted"
+      },
+      "to": [
+        {
+          "enum": "threat_treatment",
+          "value": "accepted"
+        }
+      ]
+    }
+  ]
+}

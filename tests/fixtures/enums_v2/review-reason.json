@@ -1,0 +1,227 @@
+{
+  "name": "review_reason",
+  "description": "Why an item is in the review queue. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "ambiguous_statement",
+    "unverified_identity",
+    "insufficient_authority",
+    "no_finding_id",
+    "undetermined_finding",
+    "fp_audit_valve",
+    "needs_manual_test",
+    "stale_baseline",
+    "rebaseline_mapping",
+    "rebaseline_unmatched",
+    "unsound_refutation",
+    "weak_confirmation",
+    "ungraded_confirmation",
+    "severity_proposal",
+    "needs_identity"
+  ],
+  "definitions": {
+    "ambiguous_statement": "ambiguous_statement (illustrative).",
+    "unverified_identity": "unverified_identity (illustrative).",
+    "insufficient_authority": "insufficient_authority (illustrative).",
+    "no_finding_id": "no_finding_id (illustrative).",
+    "undetermined_finding": "undetermined_finding (illustrative).",
+    "fp_audit_valve": "fp_audit_valve (illustrative).",
+    "needs_manual_test": "needs_manual_test (illustrative).",
+    "stale_baseline": "stale_baseline (illustrative).",
+    "rebaseline_mapping": "rebaseline_mapping (illustrative).",
+    "rebaseline_unmatched": "rebaseline_unmatched (illustrative).",
+    "unsound_refutation": "unsound_refutation (illustrative).",
+    "weak_confirmation": "weak_confirmation (illustrative).",
+    "ungraded_confirmation": "ungraded_confirmation (illustrative).",
+    "severity_proposal": "severity_proposal (illustrative).",
+    "needs_identity": "needs_identity (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "layer_review_queue_reason"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "ambiguous_statement"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "ambiguous_statement"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "unverified_identity"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "unverified_identity"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "insufficient_authority"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "insufficient_authority"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "no_finding_id"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "no_finding_id"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "undetermined_finding"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "undetermined_finding"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "fp_audit_valve"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "fp_audit_valve"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "needs_manual_test"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "needs_manual_test"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "stale_baseline"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "stale_baseline"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "rebaseline_mapping"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "rebaseline_mapping"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "rebaseline_unmatched"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "rebaseline_unmatched"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "unsound_refutation"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "unsound_refutation"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "weak_confirmation"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "weak_confirmation"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "ungraded_confirmation"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "ungraded_confirmation"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "severity_proposal"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "severity_proposal"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "layer_review_queue_reason",
+        "value": "needs_identity"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "needs_identity"
+        }
+      ]
+    }
+  ]
+}

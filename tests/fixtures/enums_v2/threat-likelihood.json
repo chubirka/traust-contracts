@@ -1,0 +1,88 @@
+{
+  "name": "threat_likelihood",
+  "description": "How likely is a modelled threat? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "very_low",
+    "low",
+    "moderate",
+    "high",
+    "very_high"
+  ],
+  "definitions": {
+    "very_low": "very_low (illustrative).",
+    "low": "low (illustrative).",
+    "moderate": "moderate (illustrative).",
+    "high": "high (illustrative).",
+    "very_high": "very_high (illustrative)."
+  },
+  "standard": {
+    "name": "NIST SP 800-30 Rev. 1 qualitative scale",
+    "relationship": "exact"
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "threat-likelihood"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "threat-likelihood",
+        "value": "very_rare"
+      },
+      "to": [
+        {
+          "enum": "threat_likelihood",
+          "value": "very_low"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-likelihood",
+        "value": "rare"
+      },
+      "to": [
+        {
+          "enum": "threat_likelihood",
+          "value": "low"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-likelihood",
+        "value": "possible"
+      },
+      "to": [
+        {
+          "enum": "threat_likelihood",
+          "value": "moderate"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-likelihood",
+        "value": "likely"
+      },
+      "to": [
+        {
+          "enum": "threat_likelihood",
+          "value": "high"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-likelihood",
+        "value": "almost_certain"
+      },
+      "to": [
+        {
+          "enum": "threat_likelihood",
+          "value": "very_high"
+        }
+      ]
+    }
+  ]
+}

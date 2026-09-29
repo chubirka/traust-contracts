@@ -1,0 +1,195 @@
+{
+  "name": "event_channel",
+  "description": "Where a statement arrived from. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "merge_request_comment",
+    "commit",
+    "issue_tracker",
+    "interactive",
+    "artifact"
+  ],
+  "definitions": {
+    "merge_request_comment": "merge_request_comment (illustrative).",
+    "commit": "commit (illustrative).",
+    "issue_tracker": "issue_tracker (illustrative).",
+    "interactive": "interactive (illustrative).",
+    "artifact": "artifact (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "source_type"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "mr_comment"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "merge_request_comment"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "commit"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "commit"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "jira"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "issue_tracker"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "interactive"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "interactive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "validation_report"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "artifact"
+        },
+        {
+          "enum": "event_artifact",
+          "value": "validation"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "verification_report"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "artifact"
+        },
+        {
+          "enum": "event_artifact",
+          "value": "verification"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "triage_report"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "artifact"
+        },
+        {
+          "enum": "event_artifact",
+          "value": "triage"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "impact_report"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "artifact"
+        },
+        {
+          "enum": "event_artifact",
+          "value": "impact_analysis"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "vuln_scan_report"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "artifact"
+        },
+        {
+          "enum": "event_artifact",
+          "value": "vuln_scan"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "fuzz_report"
+      },
+      "to": [
+        {
+          "enum": "event_channel",
+          "value": "artifact"
+        },
+        {
+          "enum": "event_artifact",
+          "value": "fuzz"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "rebaseline"
+      },
+      "to": [
+        {
+          "enum": "event_type",
+          "value": "rebaseline"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "source_type",
+        "value": "restatement"
+      },
+      "to": [
+        {
+          "enum": "event_type",
+          "value": "restatement"
+        }
+      ]
+    }
+  ]
+}

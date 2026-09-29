@@ -1,0 +1,22 @@
+{
+  "name": "conflict_state",
+  "description": "Do evidence classes disagree about a finding? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "none",
+    "refutation_pending_signoff",
+    "execution_overrides_human",
+    "reassertion_blocked"
+  ],
+  "definitions": {
+    "none": "none (illustrative).",
+    "refutation_pending_signoff": "refutation_pending_signoff (illustrative).",
+    "execution_overrides_human": "execution_overrides_human (illustrative).",
+    "reassertion_blocked": "reassertion_blocked (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [],
+  "aliases_from_v1": []
+}

@@ -1,0 +1,73 @@
+{
+  "name": "ownership",
+  "description": "Who a corpus subject belongs to. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "owned",
+    "upstream",
+    "external_bu",
+    "harness_qa"
+  ],
+  "definitions": {
+    "owned": "owned (illustrative).",
+    "upstream": "upstream (illustrative).",
+    "external_bu": "external_bu (illustrative).",
+    "harness_qa": "harness_qa (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "ownership"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "ownership",
+        "value": "owned"
+      },
+      "to": [
+        {
+          "enum": "ownership",
+          "value": "owned"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "ownership",
+        "value": "upstream"
+      },
+      "to": [
+        {
+          "enum": "ownership",
+          "value": "upstream"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "ownership",
+        "value": "external-bu"
+      },
+      "to": [
+        {
+          "enum": "ownership",
+          "value": "external_bu"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "ownership",
+        "value": "harness-qa"
+      },
+      "to": [
+        {
+          "enum": "ownership",
+          "value": "harness_qa"
+        }
+      ]
+    }
+  ]
+}

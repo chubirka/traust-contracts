@@ -1,0 +1,324 @@
+{
+  "name": "validity",
+  "description": "Is the claim, as written, true? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "not_assessed",
+    "inconclusive",
+    "true_positive",
+    "false_positive"
+  ],
+  "definitions": {
+    "not_assessed": "not_assessed (illustrative).",
+    "inconclusive": "inconclusive (illustrative).",
+    "true_positive": "true_positive (illustrative).",
+    "false_positive": "false_positive (illustrative)."
+  },
+  "standard": {
+    "name": "SAST triage true/false positive",
+    "relationship": "adapted",
+    "note": "Adds not_assessed and inconclusive."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "validity",
+    "event_validity",
+    "verdict",
+    "triage_verify_verdict"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "validity",
+        "value": "confirmed"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "true_positive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validity",
+        "value": "corrected"
+      },
+      "to": [
+        {
+          "enum": "event_type",
+          "value": "restatement"
+        }
+      ],
+      "note": "The validity itself is unchanged; the event records a revision."
+    },
+    {
+      "from": {
+        "enum": "validity",
+        "value": "false_positive"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "false_positive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validity",
+        "value": "not_verified"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "not_assessed"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validity",
+        "value": "hardening"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "true_positive"
+        },
+        {
+          "enum": "finding_kind",
+          "value": "weakness"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "event_validity",
+        "value": "confirmed"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "true_positive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "event_validity",
+        "value": "false_positive"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "false_positive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "event_validity",
+        "value": "corrected"
+      },
+      "to": [
+        {
+          "enum": "event_type",
+          "value": "restatement"
+        }
+      ],
+      "note": "The validity itself is unchanged; the event records a revision."
+    },
+    {
+      "from": {
+        "enum": "event_validity",
+        "value": "hardening"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "true_positive"
+        },
+        {
+          "enum": "finding_kind",
+          "value": "weakness"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verdict",
+        "value": "true_positive"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "true_positive"
+        },
+        {
+          "enum": "finding_kind",
+          "value": "vulnerability"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verdict",
+        "value": "hardening"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "true_positive"
+        },
+        {
+          "enum": "finding_kind",
+          "value": "weakness"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verdict",
+        "value": "false_positive"
+      },
+      "when": [
+        {
+          "field": "refute_reasons",
+          "contains_any": [
+            "implausible_trigger",
+            "intentional_behavior",
+            "not_actionable",
+            "already_handled"
+          ]
+        }
+      ],
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "not_affected"
+        },
+        {
+          "enum": "justification",
+          "value": "vulnerable_code_cannot_be_controlled_by_adversary"
+        }
+      ],
+      "note": "Accurate but not exploitable: only if the false_positive split is adopted."
+    },
+    {
+      "from": {
+        "enum": "verdict",
+        "value": "false_positive"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "false_positive"
+        },
+        {
+          "enum": "justification",
+          "value": "claim_misreads_code"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verdict",
+        "value": "undetermined"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "inconclusive"
+        },
+        {
+          "enum": "review_reason",
+          "value": "undetermined_finding"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verdict",
+        "value": "duplicate"
+      },
+      "to": [
+        {
+          "drop": "Represented by the duplicate_of relation; a duplicate carries no validity of its own."
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "triage_verify_verdict",
+        "value": "exploitable"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "affected"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "triage_verify_verdict",
+        "value": "mitigated"
+      },
+      "to": [
+        {
+          "enum": "applicability",
+          "value": "not_affected"
+        },
+        {
+          "enum": "justification",
+          "value": "inline_mitigations_already_exist"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "triage_verify_verdict",
+        "value": "needs_manual_test"
+      },
+      "to": [
+        {
+          "enum": "review_reason",
+          "value": "needs_manual_test"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "triage_verify_verdict",
+        "value": "confirmed"
+      },
+      "to": [
+        {
+          "drop": "Presentation alias; the triage verdict carries validity."
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "triage_verify_verdict",
+        "value": "refuted"
+      },
+      "to": [
+        {
+          "drop": "Presentation alias; the triage verdict carries validity."
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "triage_verify_verdict",
+        "value": "hardening"
+      },
+      "to": [
+        {
+          "drop": "Presentation alias; the triage verdict carries finding_kind."
+        }
+      ]
+    }
+  ]
+}

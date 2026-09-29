@@ -1,0 +1,31 @@
+{
+  "name": "justification",
+  "description": "Why a finding is not affected, or why its claim is wrong. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "component_not_present",
+    "vulnerable_code_not_present",
+    "vulnerable_code_not_in_execute_path",
+    "vulnerable_code_cannot_be_controlled_by_adversary",
+    "inline_mitigations_already_exist",
+    "claim_misreads_code",
+    "claim_target_absent"
+  ],
+  "definitions": {
+    "component_not_present": "component_not_present (illustrative).",
+    "vulnerable_code_not_present": "vulnerable_code_not_present (illustrative).",
+    "vulnerable_code_not_in_execute_path": "vulnerable_code_not_in_execute_path (illustrative).",
+    "vulnerable_code_cannot_be_controlled_by_adversary": "vulnerable_code_cannot_be_controlled_by_adversary (illustrative).",
+    "inline_mitigations_already_exist": "inline_mitigations_already_exist (illustrative).",
+    "claim_misreads_code": "claim_misreads_code (illustrative).",
+    "claim_target_absent": "claim_target_absent (illustrative)."
+  },
+  "standard": {
+    "name": "OpenVEX justification",
+    "url": "https://github.com/openvex/spec",
+    "relationship": "adapted",
+    "note": "The claim_* values are additions for claims that are simply wrong."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [],
+  "aliases_from_v1": []
+}

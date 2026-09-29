@@ -1,0 +1,20 @@
+{
+  "name": "embargo_state",
+  "description": "Is the finding under embargo now? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "embargoed",
+    "lifted",
+    "not_applicable"
+  ],
+  "definitions": {
+    "embargoed": "embargoed (illustrative).",
+    "lifted": "lifted (illustrative).",
+    "not_applicable": "not_applicable (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [],
+  "aliases_from_v1": []
+}

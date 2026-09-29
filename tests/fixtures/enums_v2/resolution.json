@@ -1,0 +1,210 @@
+{
+  "name": "resolution",
+  "description": "Where is the fix? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "open",
+    "in_progress",
+    "partially_resolved",
+    "resolved",
+    "risk_accepted",
+    "will_not_fix"
+  ],
+  "definitions": {
+    "open": "open (illustrative).",
+    "in_progress": "in_progress (illustrative).",
+    "partially_resolved": "partially_resolved (illustrative).",
+    "resolved": "resolved (illustrative).",
+    "risk_accepted": "risk_accepted (illustrative).",
+    "will_not_fix": "will_not_fix (illustrative)."
+  },
+  "standard": {
+    "name": "CycloneDX VEX analysis response",
+    "relationship": "adapted",
+    "note": "States of the fix rather than planned responses."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "disposition_resolution",
+    "verification_verdict"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "disposition_resolution",
+        "value": "open"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "open"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_resolution",
+        "value": "fix_in_progress"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "in_progress"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_resolution",
+        "value": "resolved"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "resolved"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_resolution",
+        "value": "partially_resolved"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "partially_resolved"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_resolution",
+        "value": "risk_accepted"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "risk_accepted"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_resolution",
+        "value": "regression_introduced"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "open"
+        },
+        {
+          "enum": "event_type",
+          "value": "reopened"
+        },
+        {
+          "set": {
+            "field": "reopen_reason",
+            "value": "regression"
+          }
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "resolved"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "resolved"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "partially_resolved"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "partially_resolved"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "unresolved"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "open"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "new_approach"
+      },
+      "to": [
+        {
+          "set": {
+            "field": "fix_approach_changed",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "regression"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "open"
+        },
+        {
+          "enum": "event_type",
+          "value": "reopened"
+        },
+        {
+          "set": {
+            "field": "reopen_reason",
+            "value": "regression"
+          }
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "false_positive"
+      },
+      "to": [
+        {
+          "enum": "validity",
+          "value": "false_positive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "verification_verdict",
+        "value": "risk_accepted"
+      },
+      "to": [
+        {
+          "enum": "resolution",
+          "value": "risk_accepted"
+        }
+      ]
+    }
+  ]
+}

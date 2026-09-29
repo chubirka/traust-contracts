@@ -1,0 +1,87 @@
+{
+  "name": "patch_evidence_kind",
+  "description": "Kind of base-versus-patch evidence for a fix. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "regression_test",
+    "mutation",
+    "property",
+    "scanner_differential",
+    "exploit"
+  ],
+  "definitions": {
+    "regression_test": "regression_test (illustrative).",
+    "mutation": "mutation (illustrative).",
+    "property": "property (illustrative).",
+    "scanner_differential": "scanner_differential (illustrative).",
+    "exploit": "exploit (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "patch_evidence_kind"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "patch_evidence_kind",
+        "value": "regression"
+      },
+      "to": [
+        {
+          "enum": "patch_evidence_kind",
+          "value": "regression_test"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "patch_evidence_kind",
+        "value": "mutation"
+      },
+      "to": [
+        {
+          "enum": "patch_evidence_kind",
+          "value": "mutation"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "patch_evidence_kind",
+        "value": "property"
+      },
+      "to": [
+        {
+          "enum": "patch_evidence_kind",
+          "value": "property"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "patch_evidence_kind",
+        "value": "scanner_differential"
+      },
+      "to": [
+        {
+          "enum": "patch_evidence_kind",
+          "value": "scanner_differential"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "patch_evidence_kind",
+        "value": "exploit"
+      },
+      "to": [
+        {
+          "enum": "patch_evidence_kind",
+          "value": "exploit"
+        }
+      ]
+    }
+  ]
+}

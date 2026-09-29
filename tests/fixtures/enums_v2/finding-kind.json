@@ -1,0 +1,20 @@
+{
+  "name": "finding_kind",
+  "description": "What kind of problem is claimed? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "vulnerability",
+    "weakness"
+  ],
+  "definitions": {
+    "vulnerability": "vulnerability (illustrative).",
+    "weakness": "weakness (illustrative)."
+  },
+  "standard": {
+    "name": "CWE weakness vs vulnerability",
+    "relationship": "adapted",
+    "note": "CWE names weakness types; here the split is between an exploitable defect and a defence-in-depth gap."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [],
+  "aliases_from_v1": []
+}

@@ -1,0 +1,45 @@
+{
+  "name": "actor_kind",
+  "description": "Who made a statement. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "human",
+    "machine"
+  ],
+  "definitions": {
+    "human": "human (illustrative).",
+    "machine": "machine (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "actor_kind"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "actor_kind",
+        "value": "human"
+      },
+      "to": [
+        {
+          "enum": "actor_kind",
+          "value": "human"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "actor_kind",
+        "value": "machine"
+      },
+      "to": [
+        {
+          "enum": "actor_kind",
+          "value": "machine"
+        }
+      ]
+    }
+  ]
+}

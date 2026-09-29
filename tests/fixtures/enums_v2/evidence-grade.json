@@ -1,0 +1,130 @@
+{
+  "name": "evidence_grade",
+  "description": "How strong is the evidence behind a statement? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "E0",
+    "E1",
+    "E2",
+    "E3"
+  ],
+  "definitions": {
+    "E0": "E0 (illustrative).",
+    "E1": "E1 (illustrative).",
+    "E2": "E2 (illustrative).",
+    "E3": "E3 (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "evidence_grade",
+    "disposition_assurance"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "evidence_grade",
+        "value": "E0"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E0"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "evidence_grade",
+        "value": "E1"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E1"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "evidence_grade",
+        "value": "E2"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E2"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "evidence_grade",
+        "value": "E3"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E3"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_assurance",
+        "value": "execution_proven"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E1"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_assurance",
+        "value": "human_reviewed"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E2"
+        },
+        {
+          "enum": "actor_kind",
+          "value": "human"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_assurance",
+        "value": "machine_verified"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E3"
+        },
+        {
+          "enum": "actor_kind",
+          "value": "machine"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "disposition_assurance",
+        "value": "claimed"
+      },
+      "to": [
+        {
+          "enum": "evidence_grade",
+          "value": "E3"
+        }
+      ]
+    }
+  ]
+}

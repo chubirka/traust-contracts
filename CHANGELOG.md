@@ -2,6 +2,30 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.43.0]
+
+### Added
+
+- **v2 enum format** (`enums/format/v2.schema.json`, `enums/v2/README.md`).
+  A v2 registry file defines one vocabulary: its values, what each value
+  means, the standard it follows (or why none applies), and `aliases_from_v1`,
+  which convert every value of the v1 vocabularies it replaces.
+  - Conversions can rename, merge, split one v1 value across several v2
+    vocabularies, set a non-vocabulary field (`is_default: true`), drop a
+    value with a stated reason, and apply only under conditions on
+    neighbouring fields (for example a `resolution_note` that starts with
+    `bulk-closed`).
+  - Rules are evaluated in file order: conditional aliases first, then the
+    value's single unconditional alias.
+- `ci/enum_v2.py` checks what the format schema cannot: definitions cover
+  every value, every v1 value converts exactly once, targets exist, each v1
+  vocabulary has one owner, and no alias sets anything twice.
+- `tests/test_enum_v2_format.py` checks every rule against a violating
+  example, runs the checks on every file in `enums/v2` (empty for now), and
+  shows the format can express every conversion the classifier assessment
+  proposes, using an illustrative fixture set in `tests/fixtures/enums_v2/`.
+  The fixture values are not decided vocabulary.
+
 ## [0.42.0]
 
 ### Changed

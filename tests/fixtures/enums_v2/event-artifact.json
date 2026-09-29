@@ -1,0 +1,26 @@
+{
+  "name": "event_artifact",
+  "description": "Which report an artifact event came from. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "triage",
+    "validation",
+    "verification",
+    "impact_analysis",
+    "vuln_scan",
+    "fuzz"
+  ],
+  "definitions": {
+    "triage": "triage (illustrative).",
+    "validation": "validation (illustrative).",
+    "verification": "verification (illustrative).",
+    "impact_analysis": "impact_analysis (illustrative).",
+    "vuln_scan": "vuln_scan (illustrative).",
+    "fuzz": "fuzz (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [],
+  "aliases_from_v1": []
+}

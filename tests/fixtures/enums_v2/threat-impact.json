@@ -1,0 +1,88 @@
+{
+  "name": "threat_impact",
+  "description": "How bad would a modelled threat be? Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "very_low",
+    "low",
+    "moderate",
+    "high",
+    "very_high"
+  ],
+  "definitions": {
+    "very_low": "very_low (illustrative).",
+    "low": "low (illustrative).",
+    "moderate": "moderate (illustrative).",
+    "high": "high (illustrative).",
+    "very_high": "very_high (illustrative)."
+  },
+  "standard": {
+    "name": "NIST SP 800-30 Rev. 1 qualitative scale",
+    "relationship": "exact"
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "threat-impact"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "threat-impact",
+        "value": "low"
+      },
+      "to": [
+        {
+          "enum": "threat_impact",
+          "value": "low"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-impact",
+        "value": "medium"
+      },
+      "to": [
+        {
+          "enum": "threat_impact",
+          "value": "moderate"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-impact",
+        "value": "high"
+      },
+      "to": [
+        {
+          "enum": "threat_impact",
+          "value": "high"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-impact",
+        "value": "critical"
+      },
+      "to": [
+        {
+          "enum": "threat_impact",
+          "value": "very_high"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "threat-impact",
+        "value": "existential"
+      },
+      "to": [
+        {
+          "enum": "threat_impact",
+          "value": "very_high"
+        }
+      ]
+    }
+  ]
+}

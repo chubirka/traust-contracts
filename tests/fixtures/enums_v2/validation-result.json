@@ -1,0 +1,160 @@
+{
+  "name": "validation_result",
+  "description": "Outcome of one live-validation attempt. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "confirmed",
+    "refuted",
+    "inconclusive",
+    "blocked_by_scope",
+    "not_attempted"
+  ],
+  "definitions": {
+    "confirmed": "confirmed (illustrative).",
+    "refuted": "refuted (illustrative).",
+    "inconclusive": "inconclusive (illustrative).",
+    "blocked_by_scope": "blocked_by_scope (illustrative).",
+    "not_attempted": "not_attempted (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [
+    "validation_verdict",
+    "remediation_validation_verdict"
+  ],
+  "aliases_from_v1": [
+    {
+      "from": {
+        "enum": "validation_verdict",
+        "value": "confirmed"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "confirmed"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validation_verdict",
+        "value": "refuted"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "refuted"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validation_verdict",
+        "value": "inconclusive"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "inconclusive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validation_verdict",
+        "value": "blocked_by_scope"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "blocked_by_scope"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "validation_verdict",
+        "value": "not_attempted"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "not_attempted"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "remediation_validation_verdict",
+        "value": "confirmed"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "confirmed"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "remediation_validation_verdict",
+        "value": "refuted"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "refuted"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "remediation_validation_verdict",
+        "value": "inconclusive"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "inconclusive"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "remediation_validation_verdict",
+        "value": "blocked_by_scope"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "blocked_by_scope"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "remediation_validation_verdict",
+        "value": "not_attempted"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "not_attempted"
+        }
+      ]
+    },
+    {
+      "from": {
+        "enum": "remediation_validation_verdict",
+        "value": "not_validated"
+      },
+      "to": [
+        {
+          "enum": "validation_result",
+          "value": "not_attempted"
+        }
+      ]
+    }
+  ]
+}

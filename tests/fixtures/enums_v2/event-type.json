@@ -1,0 +1,24 @@
+{
+  "name": "event_type",
+  "description": "What an event does. Illustrative fixture for the v2 format test, not a decided vocabulary: values follow the assessment's proposal and are pending the plan's decisions.",
+  "values": [
+    "disposition",
+    "restatement",
+    "rebaseline",
+    "reopened",
+    "override"
+  ],
+  "definitions": {
+    "disposition": "disposition (illustrative).",
+    "restatement": "restatement (illustrative).",
+    "rebaseline": "rebaseline (illustrative).",
+    "reopened": "reopened (illustrative).",
+    "override": "override (illustrative)."
+  },
+  "standard": {
+    "none": "Illustrative fixture."
+  },
+  "since": "0.43.0",
+  "replaces_v1": [],
+  "aliases_from_v1": []
+}
