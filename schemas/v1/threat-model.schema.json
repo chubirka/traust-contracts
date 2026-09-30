@@ -74,7 +74,9 @@
     },
     "threat": {
       "type": "object",
-      "required": ["id", "threat", "actor", "impact", "likelihood", "status"],
+      "required": ["id", "threat", "actor", "status"],
+      "anyOf": [{ "required": ["risk_rating"] }, { "required": ["impact", "likelihood"] }],
+      "$comment": "A threat is rated with risk_rating (the OWASP Risk Rating Methodology), which every new rating uses, or with the legacy impact/likelihood labels, which stay valid for threats not yet re-rated.",
       "additionalProperties": false,
       "properties": {
         "id": {
@@ -99,10 +101,11 @@
         "asset": { "type": "string" },
         "impact": {
           "enum": ["low", "medium", "high", "critical", "existential"],
-          "description": "Consequence if realised, modelled before reachability is known. Deliberately not the finding severity enum -- `existential` has no severity counterpart."
+          "description": "LEGACY label, valid only for threats not yet re-rated; new ratings use risk_rating. Consequence if realised, modelled before reachability is known. Deliberately not the finding severity enum -- `existential` has no severity counterpart."
         },
         "likelihood": {
-          "enum": ["very_rare", "rare", "possible", "likely", "almost_certain"]
+          "enum": ["very_rare", "rare", "possible", "likely", "almost_certain"],
+          "description": "LEGACY label, valid only for threats not yet re-rated; new ratings use risk_rating."
         },
         "status": {
           "enum": ["unmitigated", "partially_mitigated", "mitigated", "risk_accepted"],
@@ -123,7 +126,8 @@
           "type": "array",
           "items": { "enum": ["privilege", "encryption", "authentication", "connectivity", "hygiene"] },
           "description": "Column 12, optional, multi-tenant only. Which isolation dimension this threat stresses."
-        }
+        },
+        "risk_rating": { "$ref": "#/$defs/owasp_risk_rating" }
       }
     },
     "mitigation": {
@@ -172,6 +176,89 @@
         },
         "isolation_review_ref": { "type": "string" }
       }
-    }
+    },
+    "owasp_risk_rating": {
+      "type": "object",
+      "description": "Risk rating per the OWASP Risk Rating Methodology (OWASP Foundation, https://owasp.org/www-community/OWASP_Risk_Rating_Methodology, CC BY-SA 4.0; reimplemented here in original wording). Every factor is scored 0 to 9. The likelihood score is the mean of its eight factors; the impact score is the mean of the technical or the business factors, per basis. A score below 3 is low, below 6 medium, otherwise high. Severity combines the impact and likelihood levels by the methodology's severity table. Scores, levels and severity are derived values; traust_contracts.v1.risk_rating computes and checks them.",
+      "required": ["method", "likelihood", "impact", "severity"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "const": "owasp-risk-rating" },
+        "likelihood": {
+          "type": "object",
+          "required": ["factors", "score", "level"],
+          "additionalProperties": false,
+          "properties": {
+            "factors": {
+              "type": "object",
+              "description": "Threat-agent factors (skill_level, motive, opportunity, population_size) and vulnerability factors (ease_of_discovery, ease_of_exploit, awareness, intrusion_detection). Higher means more likely.",
+              "required": ["skill_level", "motive", "opportunity", "population_size", "ease_of_discovery", "ease_of_exploit", "awareness", "intrusion_detection"],
+              "additionalProperties": false,
+              "properties": {
+                "skill_level": { "$ref": "#/$defs/owasp_factor" },
+                "motive": { "$ref": "#/$defs/owasp_factor" },
+                "opportunity": { "$ref": "#/$defs/owasp_factor" },
+                "population_size": { "$ref": "#/$defs/owasp_factor" },
+                "ease_of_discovery": { "$ref": "#/$defs/owasp_factor" },
+                "ease_of_exploit": { "$ref": "#/$defs/owasp_factor" },
+                "awareness": { "$ref": "#/$defs/owasp_factor" },
+                "intrusion_detection": { "$ref": "#/$defs/owasp_factor" }
+              }
+            },
+            "score": { "$ref": "#/$defs/owasp_score" },
+            "level": { "$ref": "#/$defs/owasp_level" }
+          }
+        },
+        "impact": {
+          "type": "object",
+          "required": ["basis", "technical", "score", "level"],
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "enum": ["technical", "business"],
+              "description": "Which factor set sets the impact score. The methodology prefers business impact when it is known, and technical impact otherwise."
+            },
+            "technical": {
+              "type": "object",
+              "required": ["confidentiality", "integrity", "availability", "accountability"],
+              "additionalProperties": false,
+              "properties": {
+                "confidentiality": { "$ref": "#/$defs/owasp_factor" },
+                "integrity": { "$ref": "#/$defs/owasp_factor" },
+                "availability": { "$ref": "#/$defs/owasp_factor" },
+                "accountability": { "$ref": "#/$defs/owasp_factor" }
+              }
+            },
+            "business": {
+              "type": "object",
+              "required": ["financial", "reputation", "non_compliance", "privacy"],
+              "additionalProperties": false,
+              "properties": {
+                "financial": { "$ref": "#/$defs/owasp_factor" },
+                "reputation": { "$ref": "#/$defs/owasp_factor" },
+                "non_compliance": { "$ref": "#/$defs/owasp_factor" },
+                "privacy": { "$ref": "#/$defs/owasp_factor" }
+              }
+            },
+            "score": { "$ref": "#/$defs/owasp_score" },
+            "level": { "$ref": "#/$defs/owasp_level" }
+          },
+          "if": { "properties": { "basis": { "const": "business" } } },
+          "then": { "required": ["business"] }
+        },
+        "severity": {
+          "enum": ["note", "low", "medium", "high", "critical"],
+          "description": "Overall severity from the impact and likelihood levels."
+        },
+        "rationale": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 1 },
+          "description": "One short reason per factor, keyed by factor name, so a reviewer can check each score."
+        }
+      }
+    },
+    "owasp_factor": { "type": "integer", "minimum": 0, "maximum": 9 },
+    "owasp_score": { "type": "number", "minimum": 0, "maximum": 9 },
+    "owasp_level": { "enum": ["low", "medium", "high"] }
   }
 }

@@ -105,6 +105,42 @@ class TestBreakingChangeDetection:
         return found
 
     @staticmethod
+    def _anyof_satisfied_by_old_required(current: dict, old: dict, pointer: str) -> bool:
+        """True when `pointer` is a branch of an anyOf that every OLD artifact satisfies.
+
+        An anyOf rejects only artifacts matching none of its branches. When
+        every branch is a bare `{"required": [...]}` and one branch asks for
+        nothing beyond what the OLD schema already required at the same node,
+        every old artifact matches that branch, so the anyOf cannot invalidate
+        one. Deliberately narrow: oneOf is excluded (matching two branches
+        fails it), and so is any branch carrying more than `required`.
+        """
+        parts = pointer.strip("/").split("/")
+        if len(parts) < 2 or parts[-2] != "anyOf":
+            return False
+
+        def resolve(schema: dict, segments: list[str]):
+            node = schema
+            for segment in segments:
+                if isinstance(node, list) and segment.isdigit():
+                    node = node[int(segment)]
+                elif isinstance(node, dict) and segment in node:
+                    node = node[segment]
+                else:
+                    return None
+            return node
+
+        parent_path = parts[:-2]
+        branches = resolve(current, [*parent_path, "anyOf"])
+        old_parent = resolve(old, parent_path)
+        if not isinstance(branches, list) or not isinstance(old_parent, dict):
+            return False
+        if not all(isinstance(b, dict) and set(b) == {"required"} for b in branches):
+            return False
+        old_required = set(old_parent.get("required") or [])
+        return any(set(b["required"]) <= old_required for b in branches)
+
+    @staticmethod
     def _defs_reachable_only_via_new_properties(current: dict, old: dict) -> set:
         """Names of `$defs` that no artifact of the OLD schema could reach.
 
@@ -287,6 +323,8 @@ class TestBreakingChangeDetection:
             for pointer, fields in sorted(new_conds - old_conds):
                 if any(pointer.startswith(f"/$defs/{name}/") for name in unreachable):
                     continue
+                if self._anyof_satisfied_by_old_required(current_schema, old_schema, pointer):
+                    continue
                 breaking_changes.append(
                     f"{schema_file.name}{pointer}: new conditional requirement: {fields} "
                     "(artifacts not satisfying it become invalid)"
@@ -402,3 +440,30 @@ class TestConditionalReachability:
             },
         }
         assert "shared" not in self.H._defs_reachable_only_via_new_properties(current, self.OLD)
+
+
+class TestAnyOfAlternatives:
+    """The anyOf narrowing must exempt only alternatives an old artifact already meets."""
+
+    H = TestBreakingChangeDetection
+    OLD: ClassVar[dict] = {"$defs": {"t": {"type": "object", "required": ["a", "b", "c"]}}}
+
+    def _new(self, branches, key="anyOf"):
+        return {"$defs": {"t": {"type": "object", "required": ["a"], key: branches}}}
+
+    def test_new_alternative_to_old_requirements_is_not_breaking(self):
+        new = self._new([{"required": ["x"]}, {"required": ["b", "c"]}])
+        for i in (0, 1):
+            assert self.H._anyof_satisfied_by_old_required(new, self.OLD, f"/$defs/t/anyOf/{i}")
+
+    def test_alternatives_old_artifacts_do_not_meet_stay_breaking(self):
+        new = self._new([{"required": ["x"]}, {"required": ["b", "y"]}])
+        assert not self.H._anyof_satisfied_by_old_required(new, self.OLD, "/$defs/t/anyOf/0")
+
+    def test_oneof_is_never_exempt(self):
+        new = self._new([{"required": ["x"]}, {"required": ["b", "c"]}], key="oneOf")
+        assert not self.H._anyof_satisfied_by_old_required(new, self.OLD, "/$defs/t/oneOf/0")
+
+    def test_branches_with_more_than_required_are_not_exempt(self):
+        new = self._new([{"required": ["x"], "properties": {}}, {"required": ["b"]}])
+        assert not self.H._anyof_satisfied_by_old_required(new, self.OLD, "/$defs/t/anyOf/1")
