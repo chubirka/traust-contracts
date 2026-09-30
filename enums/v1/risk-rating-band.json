@@ -10,6 +10,7 @@
     "note"
   ],
   "used_in_schemas": [
-    "risk-rating-methodology.schema.json"
+    "risk-rating-methodology.schema.json",
+    "threat-model.schema.json"
   ]
 }

@@ -2,6 +2,49 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.45.0]
+
+### Added
+
+- **Threat risk rating by the OWASP Risk Rating Methodology.** A threat can now
+  carry `risk_rating`:
+  - eight likelihood factors and four technical impact factors (plus four
+    business ones when known), each scored 0–9
+  - the likelihood and impact scores (means of their factors) and levels
+    (low below 3, medium below 6, otherwise high)
+  - the severity from the method's 3×3 table: `note`, `low`, `medium`,
+    `high` or `critical`
+  - an optional one-line reason per factor
+
+  Source: OWASP Foundation,
+  <https://owasp.org/www-community/OWASP_Risk_Rating_Methodology> (CC BY-SA
+  4.0), reimplemented in original wording and code.
+- `traust_contracts.v1.risk_rating` is the one implementation of the method's
+  arithmetic. `rate()` builds a rating from factor scores, and `problems()`
+  rejects one whose scores, levels or severity don't follow from its factors.
+  Tested against the methodology's own worked example.
+- `enums/v1/owasp-impact-basis.json` (technical or business), with
+  definitions.
+
+### Changed
+
+- A threat must now be rated **either** with `risk_rating` **or** with the
+  legacy `impact`/`likelihood` labels. All existing threat models still
+  validate; new ratings use `risk_rating`. The legacy labels are documented as
+  such.
+- The compatibility gate no longer flags an `anyOf` whose branches are plain
+  `required` lists when one branch asks for nothing the old schema didn't
+  already require. Every old artifact satisfies that branch. `oneOf` and
+  branches with other constraints are still flagged, and tests pin the
+  narrowing.
+
+### Not yet projected
+
+- The `threat` table and `threat_current` view don't carry `risk_rating` yet;
+  that needs new columns, a storage decision still pending. An OWASP-rated
+  threat projects with NULL `impact`, `likelihood` and `score`. The gap is
+  recorded as an EXEMPT entry in `tests/test_view_contract_coverage.py`.
+
 ## [0.44.0]
 
 ### Added
