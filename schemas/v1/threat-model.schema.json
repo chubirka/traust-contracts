@@ -18,8 +18,16 @@
     },
     "provenance": { "$ref": "#/$defs/provenance" },
     "system_context": { "type": "string" },
-    "assets": { "type": "array", "items": { "type": "object" } },
-    "entry_points": { "type": "array", "items": { "type": "object" } },
+    "assets": {
+      "type": "array",
+      "description": "Section 2. One entry per thing worth protecting.",
+      "items": { "$ref": "#/$defs/asset" }
+    },
+    "entry_points": {
+      "type": "array",
+      "description": "Section 3. One entry per place untrusted input enters the system or privilege level changes.",
+      "items": { "$ref": "#/$defs/entry_point" }
+    },
     "threats": {
       "type": "array",
       "description": "Section 4. The threat model proper: one row per actor-wants-outcome pair, at the abstraction level where it survives a patch.",
@@ -28,7 +36,7 @@
     "deprioritized": {
       "type": "array",
       "description": "Section 5. Retired threats. An id here is NEVER reused -- it records that a threat was considered and set aside, which is a different claim from never having considered it.",
-      "items": { "type": "object" }
+      "items": { "$ref": "#/$defs/deprioritized_threat" }
     },
     "open_questions": { "type": "array", "items": { "type": "string" } },
     "mitigations": {
@@ -36,7 +44,11 @@
       "description": "Section 8, optional and additive. Each entry is one CLASS-LEVEL control, not a per-finding patch.",
       "items": { "$ref": "#/$defs/mitigation" }
     },
-    "attack_scenarios": { "type": "array", "items": { "type": "object" } },
+    "attack_scenarios": {
+      "type": "array",
+      "description": "Section 9, optional. The narrative layer for the top 3-5 threats: each scenario tells the attack as it unfolds, in prose.",
+      "items": { "$ref": "#/$defs/attack_scenario" }
+    },
     "tenant_boundaries": {
       "type": "array",
       "description": "Section 10, optional, MULTI-TENANT SERVICES ONLY. Single-tenant targets omit it; its absence is not a gap. Vocabulary is shared with isolation-review so boundary rows and full reviews line up.",
@@ -45,7 +57,7 @@
     "update_history": {
       "type": "array",
       "description": "Appended by an update or review pass. Additive: `mode` in provenance keeps its original value.",
-      "items": { "type": "object" }
+      "items": { "$ref": "#/$defs/history_entry" }
     }
   },
   "$defs": {
@@ -128,6 +140,83 @@
           "description": "Column 12, optional, multi-tenant only. Which isolation dimension this threat stresses."
         },
         "risk_rating": { "$ref": "#/$defs/owasp_risk_rating" }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "required": ["asset", "description", "sensitivity"],
+      "additionalProperties": false,
+      "properties": {
+        "asset": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "sensitivity": { "enum": ["low", "medium", "high", "critical"] },
+        "regulatory_scope": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Comma-separated regimes governing the asset (GDPR, CCPA, HIPAA, PCI-DSS, SOX, export-control, ...), or `none`."
+        },
+        "example_records": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concrete field or record names, e.g. `name, email, address` or `kubeconfig, pull-secret`."
+        }
+      }
+    },
+    "entry_point": {
+      "type": "object",
+      "required": ["entry_point", "description", "trust_boundary", "reachable_assets"],
+      "additionalProperties": false,
+      "properties": {
+        "entry_point": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "trust_boundary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The crossing, in free text, e.g. `untrusted file -> process memory`."
+        },
+        "reachable_assets": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Comma-separated names of section-2 assets reachable through this entry point."
+        }
+      }
+    },
+    "deprioritized_threat": {
+      "type": "object",
+      "required": ["threat", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "threat": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "attack_scenario": {
+      "type": "object",
+      "required": ["id", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^T[0-9]+$",
+          "description": "The section-4 threat this scenario narrates."
+        },
+        "threat": { "type": "string", "minLength": 1 },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The scenario's prose, one paragraph per entry.",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "history_entry": {
+      "type": "object",
+      "required": ["date", "changes", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "date": { "type": "string", "format": "date", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "changes": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
       }
     },
     "mitigation": {
