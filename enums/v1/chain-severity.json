@@ -9,6 +9,7 @@
     "low"
   ],
   "used_in_schemas": [
+    "threat-model.schema.json",
     "validation.schema.json"
   ]
 }

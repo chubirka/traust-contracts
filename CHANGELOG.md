@@ -2,6 +2,24 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.47.0]
+
+### Changed
+
+- **The threat-model schema defines every section it declares.** `assets`,
+  `entry_points`, `deprioritized`, `attack_scenarios` and `update_history` were
+  `{"type": "object"}`, so any object passed: no field names, no required
+  fields, and no check on asset `sensitivity`. They now have `$defs` (`asset`,
+  `entry_point`, `deprioritized_threat`, `attack_scenario`, `history_entry`)
+  with required fields and `additionalProperties: false`, transcribed from the
+  threat-model skill's `schema.md`, which the Markdown linter already
+  enforced. Asset `sensitivity` is `low|medium|high|critical`; `chain-severity`
+  is now registered as used by this schema too. A scenario's `steps` are its
+  prose paragraphs.
+- Backward compatible for every existing artifact: all threat-model artifacts
+  in the deployment that prompted this validate against the tightened schema
+  unchanged.
+
 ## [0.46.0]
 
 ### Added
