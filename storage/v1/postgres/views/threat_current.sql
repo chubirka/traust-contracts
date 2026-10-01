@@ -35,7 +35,14 @@ SELECT b.scope_id,
        owner.ownership,
        owner.business_unit,
        owner.tree,
-       owner.is_branch_audit
+       owner.is_branch_audit,
+       t.risk_rating,
+       t.severity,
+       t.likelihood_score,
+       t.likelihood_level,
+       t.impact_score,
+       t.impact_level,
+       t.impact_basis
 FROM traust_storage.threat t
 JOIN traust_storage.artifact_binding b
   ON b.binding_id = t.binding_id

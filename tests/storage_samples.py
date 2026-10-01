@@ -985,3 +985,35 @@ def sample(name: str) -> tuple[bytes, dict[str, str]]:
 
 def encode(document: Any) -> bytes:
     return json.dumps(document).encode()
+
+
+def rated_threat_model() -> bytes:
+    """The sample model with T2 re-rated by the OWASP Risk Rating Methodology.
+
+    T1 keeps its legacy labels, so one model carries both kinds -- the state
+    every model is in between its first OWASP pass and its last legacy row.
+    The factors are the method's own worked example: likelihood 4.375
+    (medium), technical impact 7.25 (high), severity high.
+    """
+    from traust_contracts.v1 import risk_rating
+
+    payload, _ = sample("threat-model")
+    document = json.loads(payload)
+    t2 = document["threats"][1]
+    t2.pop("impact", None)
+    t2.pop("likelihood", None)
+    t2["risk_rating"] = risk_rating.rate(
+        {
+            "skill_level": 5,
+            "motive": 2,
+            "opportunity": 7,
+            "population_size": 1,
+            "ease_of_discovery": 3,
+            "ease_of_exploit": 6,
+            "awareness": 9,
+            "intrusion_detection": 2,
+        },
+        {"confidentiality": 9, "integrity": 7, "availability": 5, "accountability": 8},
+        rationale={"awareness": "the pattern is publicly documented"},
+    )
+    return json.dumps(document).encode()

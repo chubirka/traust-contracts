@@ -20,7 +20,14 @@ SELECT scope_id,
        ownership,
        business_unit,
        tree,
-       is_branch_audit
+       is_branch_audit,
+       risk_rating,
+       severity,
+       likelihood_score,
+       likelihood_level,
+       impact_score,
+       impact_level,
+       impact_basis
 FROM threat_current
 WHERE scope_id IN (SELECT value FROM json_each(:scope_ids))
 ORDER BY scope_id, threat_key;

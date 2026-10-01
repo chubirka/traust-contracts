@@ -108,16 +108,6 @@ FAN_OUT_VIEWS: dict[str, tuple[str, tuple[str, ...]]] = {
 #: Fields a view deliberately does not carry, each with the reason.
 #: A reason a reviewer can disagree with -- not "not needed yet".
 EXEMPT: dict[tuple[str, str], str] = {
-    ("threat", "risk_rating"): (
-        "OWASP Risk Rating Methodology ratings, new in contracts 0.45. Projecting "
-        "them needs new threat columns (severity, likelihood and impact scores and "
-        "levels), which is a storage DDL change awaiting its owner's decision. Until "
-        "then the rating is read from the artifact, and an OWASP-rated threat "
-        "projects with NULL impact, likelihood and score"
-    ),
-    ("threat_current", "risk_rating"): (
-        "not yet carried by the threat table; see the threat entry"
-    ),
     ("advisory_exposure", "evidence"): ("the block itself; its members are checked individually"),
     ("validation_current", "steps"): (
         "the per-step execution log, one level below this view's grain. "
