@@ -2,6 +2,33 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.46.0]
+
+### Added
+
+- **OWASP risk ratings reach storage.** The `threat` table, in both dialects,
+  now carries:
+  - `risk_rating`, the whole block with its factors and reasons
+  - its derived values as typed columns: `severity`, `likelihood_score`,
+    `likelihood_level`, `impact_score`, `impact_level`, `impact_basis`
+  - a new `(status, severity)` index
+
+  These columns are NULL on a threat not yet re-rated. Such a threat keeps its
+  legacy `impact`, `likelihood` and `score`, which is now NULL on a rated
+  threat because the rating orders by severity.
+- `threat_current` exposes the new columns, appended after the existing ones
+  so positional readers are unaffected. `threat_exposure` groups by
+  `severity` (a rated threat and a legacy one never share a row), and its list
+  query orders by severity, most severe first. The 0.45.0 `risk_rating`
+  exemptions in the view-coverage test are gone.
+
+### Compatibility
+
+- The storage revision stays 1, following the convention for storage/v1
+  before its first deployed migration (`sql.py`): the DDL is edited in place,
+  as earlier storage/v1 changes were. A database initialised from an earlier
+  0.x DDL must be recreated, not upgraded.
+
 ## [0.45.0]
 
 ### Added

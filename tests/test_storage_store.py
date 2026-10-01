@@ -23,6 +23,7 @@ from storage_samples import (
     PROJECTION_TABLES,
     RUN_BOUND,
     encode,
+    rated_threat_model,
     sample,
 )
 
@@ -930,6 +931,73 @@ def test_threat_carries_its_attack_refs(store: Store) -> None:
     row = store.conn.execute("SELECT attack_refs FROM threat WHERE threat_id='T1'").fetchone()
     assert row is not None and row[0], "attack_refs must reach the projection"
     assert json.loads(row[0]) == ["T1190", "T1078"]
+
+
+_RATING_COLUMNS = (
+    "severity, likelihood_score, likelihood_level, impact_score, impact_level, "
+    "impact_basis, risk_rating, impact, likelihood, score"
+)
+
+
+def test_rated_threat_projects_its_owasp_rating(store: Store) -> None:
+    """The rating reaches SQL whole, with its derived values typed beside it.
+
+    Before these columns an OWASP-rated threat projected with NULL impact,
+    likelihood and score -- present in the table and unrankable.
+    """
+    payload = rated_threat_model()
+    store.ingest("threat-model", payload, Binding(subject_id="findings/example/repo", run_id="r1"))
+    row = store.conn.execute(
+        f"SELECT {_RATING_COLUMNS} FROM threat WHERE threat_id='T2'"
+    ).fetchone()
+    assert row[:6] == ("high", 4.375, "medium", 7.25, "high", "technical")
+    rating = json.loads(row[6])
+    assert rating == json.loads(payload)["threats"][1]["risk_rating"], "factors and reasons kept"
+    assert row[7:] == (None, None, None), "no legacy labels and no legacy score on a rated threat"
+
+
+def test_legacy_threat_keeps_its_labels_and_score(store: Store) -> None:
+    store.ingest(
+        "threat-model",
+        rated_threat_model(),
+        Binding(subject_id="findings/example/repo", run_id="r1"),
+    )
+    row = store.conn.execute(
+        f"SELECT {_RATING_COLUMNS} FROM threat WHERE threat_id='T1'"
+    ).fetchone()
+    assert row[:7] == (None,) * 7, "an unrated threat has no rating columns"
+    assert row[7:] == ("critical", "almost_certain", _threat_score("critical", "almost_certain"))
+
+
+def test_threat_current_carries_the_rating(store: Store) -> None:
+    _seed_dashboard(store)
+    store.ingest(
+        "threat-model",
+        rated_threat_model(),
+        Binding(subject_id="findings/example/repo", run_id="r1"),
+    )
+    rows = {row[2]: row for row in store.query_threat_current(["local"])}
+    # The rating columns are appended after the existing ones, so readers
+    # that index the older columns by position are unaffected.
+    assert rows["T2"][-6:] == ("high", 4.375, "medium", 7.25, "high", "technical")
+    assert json.loads(rows["T2"][-7])["severity"] == "high"
+    assert rows["T1"][-7:] == (None,) * 7
+
+
+def test_threat_exposure_splits_rated_from_legacy_and_orders_by_severity(store: Store) -> None:
+    """A rated threat and a legacy one never share an exposure row."""
+    _seed_dashboard(store)
+    store.ingest(
+        "threat-model",
+        rated_threat_model(),
+        Binding(subject_id="findings/example/repo", run_id="r1"),
+    )
+    rows = store.query_threat_exposure(["local"])
+    by_severity = {(row[-1], row[5], row[6]) for row in rows}
+    assert ("high", None, None) in by_severity, "the rated threat groups by severity"
+    assert (None, "critical", "almost_certain") in by_severity, "the legacy one by its labels"
+    severities = [row[-1] for row in rows if row[-1] is not None]
+    assert severities == ["high"]
 
 
 def test_threat_exposure_keeps_partially_mitigated_and_marks_evidence(store: Store) -> None:

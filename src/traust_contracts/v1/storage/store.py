@@ -423,7 +423,9 @@ def _boolean(value: bool | None) -> int | None:
     return int(value)
 
 
-#: Ordinal weights for the threat rank score. The score is DERIVED here and
+#: Ordinal weights for the LEGACY threat rank score, used only for a threat
+#: not yet re-rated with the OWASP Risk Rating Methodology; a rated threat
+#: orders by its `severity` column instead. The score is DERIVED here and
 #: is deliberately not a schema field: `$defs/threat` sets
 #: `additionalProperties: false`, so a producer that wrote one would emit an
 #: invalid artifact, and reading a field the schema forbids is how
@@ -437,6 +439,40 @@ _LIKELIHOOD_WEIGHT = {
     "likely": 8,
     "almost_certain": 16,
 }
+
+
+def _threat_rating_columns(rating: Any) -> dict[str, Any]:
+    """The OWASP rating block and its derived values, as threat columns.
+
+    The block is stored whole (factors and reasons are part of the contract)
+    and its severity, scores, levels and basis are lifted into typed columns
+    so a view can filter and order on them. Every column is NULL when the
+    threat carries no rating.
+    """
+    if not isinstance(rating, dict):
+        return dict.fromkeys(_THREAT_RATING_COLUMNS)
+    likelihood = rating.get("likelihood") or {}
+    impact = rating.get("impact") or {}
+    return {
+        "risk_rating": _json_or_none(rating),
+        "severity": rating.get("severity"),
+        "likelihood_score": likelihood.get("score"),
+        "likelihood_level": likelihood.get("level"),
+        "impact_score": impact.get("score"),
+        "impact_level": impact.get("level"),
+        "impact_basis": impact.get("basis"),
+    }
+
+
+_THREAT_RATING_COLUMNS = (
+    "risk_rating",
+    "severity",
+    "likelihood_score",
+    "likelihood_level",
+    "impact_score",
+    "impact_level",
+    "impact_basis",
+)
 
 
 def _threat_score(impact: Any, likelihood: Any) -> int | None:
@@ -1196,6 +1232,7 @@ class Store:
                     "asset": threat.get("asset"),
                     "impact": threat.get("impact"),
                     "likelihood": threat.get("likelihood"),
+                    **_threat_rating_columns(threat.get("risk_rating")),
                     "status": threat.get("status"),
                     "controls": threat.get("controls"),
                     "actors": _json_or_none(threat.get("actor")),
@@ -1203,7 +1240,12 @@ class Store:
                     "linddun": _boolean(
                         str(threat.get("threat", "")).lower().startswith("linddun:")
                     ),
-                    "score": _threat_score(threat.get("impact"), threat.get("likelihood")),
+                    # Legacy ordering only: a rated threat orders by severity.
+                    "score": (
+                        None
+                        if threat.get("risk_rating")
+                        else _threat_score(threat.get("impact"), threat.get("likelihood"))
+                    ),
                     "attack_refs": _json_or_none(threat.get("attack_refs")),
                     "isolation_dimensions": _json_or_none(threat.get("isolation_dimensions")),
                     "isolation_boundaries": _json_or_none(threat.get("isolation_boundaries")),

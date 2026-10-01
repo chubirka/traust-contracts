@@ -18,8 +18,21 @@ CREATE TABLE IF NOT EXISTS traust_storage.threat (
     statement TEXT,
     surface TEXT,
     asset TEXT,
+    -- LEGACY labels, present only on a threat not yet re-rated with the
+    -- OWASP Risk Rating Methodology (threat-model schema: impact/likelihood).
     impact TEXT,
     likelihood TEXT,
+    -- OWASP Risk Rating Methodology rating (schema `risk_rating`): the whole
+    -- block, factors and reasons included, and its derived values as typed
+    -- columns so a view can filter and order by them. All NULL on a threat
+    -- not yet re-rated. Severity is one of critical, high, medium, low, note.
+    risk_rating JSONB,
+    severity TEXT,
+    likelihood_score DOUBLE PRECISION,
+    likelihood_level TEXT,
+    impact_score DOUBLE PRECISION,
+    impact_level TEXT,
+    impact_basis TEXT,
     -- Four states, and partially_mitigated is the largest in practice.
     -- Folding it into mitigated is the single biggest way to overstate
     -- threat coverage, so it stays its own value all the way to the view.
@@ -30,8 +43,10 @@ CREATE TABLE IF NOT EXISTS traust_storage.threat (
     -- from unmitigated. Kept so a view can tell the two apart.
     evidence JSONB,
     linddun INTEGER,
-    -- impact weight x likelihood weight. An ORDERING for triage queues,
-    -- never a calibrated risk value and never comparable to CVSS.
+    -- LEGACY ordering for a threat not yet re-rated: impact weight x
+    -- likelihood weight over the legacy labels. Never a calibrated risk value
+    -- and never comparable to CVSS; NULL on an OWASP-rated threat, which
+    -- orders by severity instead.
     score INTEGER,
     -- Column 11 of the threats table, default since harness 0.82.0.
     -- This is what an ATT&CK coverage rollup reads; omitting it drops
@@ -46,3 +61,4 @@ CREATE TABLE IF NOT EXISTS traust_storage.threat (
 
 CREATE INDEX IF NOT EXISTS idx_threat_subject ON traust_storage.threat (subject_id);
 CREATE INDEX IF NOT EXISTS idx_threat_rank ON traust_storage.threat (status, score);
+CREATE INDEX IF NOT EXISTS idx_threat_severity ON traust_storage.threat (status, severity);

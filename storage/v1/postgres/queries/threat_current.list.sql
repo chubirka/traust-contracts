@@ -20,7 +20,14 @@ SELECT scope_id,
        ownership,
        business_unit,
        tree,
-       is_branch_audit
+       is_branch_audit,
+       risk_rating,
+       severity,
+       likelihood_score,
+       likelihood_level,
+       impact_score,
+       impact_level,
+       impact_basis
 FROM traust_storage.threat_current
 WHERE scope_id IN (
     SELECT jsonb_array_elements_text(%(scope_ids)s::jsonb)
