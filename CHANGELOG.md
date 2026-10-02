@@ -2,6 +2,18 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.47.1]
+
+### Changed
+
+- `locations.schema.json`: `analysis_results` now documents its accepted
+  forms. A path or `file://` URI is local disk; `s3://`, `gs://`/`gcs://` and
+  `az://`/`abfs://` are object stores, each with the traust-engine extra it
+  needs. Connection settings and credentials come from the environment, never
+  this file. The bucket must enforce encryption at rest by its own policy,
+  because the harness doesn't set encryption per object. Description only:
+  no validation change.
+
 ## [0.47.0]
 
 ### Changed

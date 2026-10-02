@@ -12,7 +12,7 @@
     },
     "analysis_results": {
       "type": "string",
-      "description": "Where findings-side artifacts live (graphs, findings.db, compliance, sweeps)."
+      "description": "Where findings-side artifacts live (graphs, findings.db, compliance, sweeps). A local path or file:// URI keeps them on disk; an object-store URI keeps them in a bucket: s3:// (traust-engine[s3]), gs:// or gcs:// (traust-engine[remote] plus gcsfs), az:// or abfs:// (traust-engine[remote] plus adlfs). Connection settings and credentials never go here; they come from the environment (the provider's standard credential chain, plus HARNESS_S3_* for S3-compatible stores). The bucket must enforce encryption at rest by its own policy (for example SSE-KMS default encryption): the harness writes security findings, some embargoed, and does not set encryption per object."
     },
     "portfolio_graph": {
       "type": "string",
