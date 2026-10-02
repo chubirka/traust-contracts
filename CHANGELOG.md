@@ -2,6 +2,18 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.48.1]
+
+### Fixed
+
+- **Storage revision 2.** 0.48.0 changed the storage/v1 DDL
+  (`artifact_binding.artifact_role`, the `artifact_location` table) but left
+  `REVISION` at 1, so a database created under the 0.47 schema passed the
+  revision check on open and then failed its first read or write with
+  `no such column: artifact_role`. `REVISION` is now 2: such a database is
+  refused on open. No 1 -> 2 migration ships; recreate it. The migration
+  placeholder moves to `002_to_003.sql`.
+
 ## [0.48.0]
 
 ### Added
