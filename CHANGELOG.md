@@ -6,17 +6,34 @@ All notable changes to traust-contracts are documented here.
 
 ### Added
 
-- `artifact_evidence` gains a nullable `reference` column: an optional,
-  caller-supplied pointer to where the exact bytes already live (a path or
-  URI in the caller's own object store). Storage never fetches or verifies
-  it — it's advisory, recorded once on first ingest of a digest, and left
-  alone on retry, same as the bytes it describes.
-- `Store.ingest()` accepts an optional `reference` argument.
-- `Store.get_evidence(digest)` returns an `EvidenceRecord(digest, byte_size,
-  reference)`. Metadata only; bytes are never retained or returned here.
-- New `artifact_evidence.get.sql` query (both dialects) backing
-  `get_evidence()`. Does not replace `artifact_evidence_size.get.sql`, which
-  the Go SDK's read path still uses as-is.
+- **Binding roles.** `Binding.role` names a lifecycle role within one context,
+  so a `baseline` audit and its `cumulative` findings-current restatement --
+  both `report`, same subject, same scanned commit -- are distinct bindings.
+  `profiles.json` declares accepted roles per artifact (`report`: `baseline`,
+  `cumulative`); undeclared roles are rejected. The role is part of the
+  binding identity and must match across a supersession.
+- **Artifact locations.** New `artifact_location` table keyed
+  `(binding_id, reference)`. `Store.ingest(..., references=[...])` registers
+  where the caller already wrote the exact bytes; a retry may add more.
+  `get_binding()` returns them on `BindingRecord.references`. References are
+  opaque, never fetched or verified, and scoped to the binding that wrote
+  them. See `storage/v1/README.md`, "Artifact locations", for pinning.
+- `BindingRecord.byte_size`: `get_binding()` returns the evidence size, so a
+  consumer gets digest, size, and references from one call and can check the
+  bytes it fetches. Reuses `artifact_evidence_size.get.sql`.
+- `artifact_binding.artifact_role` column; `artifact_location.upsert.sql` and
+  `artifact_location.get.sql` in both dialects.
+
+### Unchanged
+
+- Binding identity for bindings without a role: `role` is encoded trailing
+  and present-only, so every existing `binding_id` is unchanged.
+
+### Migration
+
+- Storage revision stays 1. A database bootstrapped by an earlier release
+  does not gain `artifact_role` or `artifact_location`; `init()` will not add
+  them. Recreate pre-0.48 storage databases or apply the DDL by hand.
 
 ## [0.47.1]
 

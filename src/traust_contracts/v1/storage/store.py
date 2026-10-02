@@ -7,7 +7,7 @@ import json
 import re
 import sqlite3
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from functools import cache
 from typing import Any
@@ -304,6 +304,10 @@ class Binding:
     run_id: str | None = None
     layer_id: str | None = None
     supersedes_binding_id: str | None = None
+    #: Lifecycle role within the same context, e.g. a ``report`` that is the
+    #: ``baseline`` audit vs the ``cumulative`` disposition-aware restatement.
+    #: Allowed values come from the artifact's ``roles`` in profiles.json.
+    role: str | None = None
 
 
 @dataclass(frozen=True)
@@ -313,6 +317,11 @@ class BindingRecord:
     artifact_name: str
     binding: Binding
     bound_at: str
+    #: Caller-registered locations of the exact bytes, by registration time
+    #: then reference (refs registered in one call share a timestamp).
+    references: tuple[str, ...] = ()
+    #: Exact byte length of the evidence, for checking fetched bytes.
+    byte_size: int | None = None
 
 
 @dataclass(frozen=True)
@@ -320,15 +329,6 @@ class IngestResult:
     digest: str
     binding_id: str
     already_bound: bool = False
-
-
-@dataclass(frozen=True)
-class EvidenceRecord:
-    """Digest-keyed metadata only; bytes live in the caller's object store."""
-
-    digest: str
-    byte_size: int
-    reference: str | None
 
 
 class IngestError(ValueError):
@@ -554,6 +554,19 @@ def _identifier_bytes(field: str, value: str) -> bytes:
         raise IngestError(f"{field}: invalid Unicode") from None
 
 
+def _references(references: Sequence[str]) -> tuple[str, ...]:
+    """Opaque caller strings, deduplicated in order; never parsed as URIs."""
+    if isinstance(references, str) or not isinstance(references, Sequence):
+        raise IngestError("references: expected a sequence of strings")
+    seen: dict[str, None] = {}
+    for reference in references:
+        if reference == "":
+            raise IngestError("references: empty reference")
+        _identifier_bytes("references", reference)
+        seen.setdefault(reference, None)
+    return tuple(seen)
+
+
 def binding_id(artifact_digest: str, artifact_name: str, binding: Binding) -> str:
     """Return the storage/v1 binding identity over the specified byte tuple."""
     required = (artifact_digest, artifact_name, binding.scope_id)
@@ -574,6 +587,13 @@ def binding_id(artifact_digest: str, artifact_name: str, binding: Binding) -> st
             encoded.append(1)
             encoded.extend(_identifier_bytes(field, value))
             encoded.append(0)
+    # Trailing and present-only: an unroled binding hashes exactly as before
+    # roles existed, so no existing binding_id moves. Every earlier field is
+    # delimited, so a present role cannot collide with an absent one.
+    if binding.role is not None:
+        encoded.append(1)
+        encoded.extend(_identifier_bytes("role", binding.role))
+        encoded.append(0)
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -686,6 +706,15 @@ class Store:
             if row is None:
                 raise IngestError("artifact binding not found")
             record = self._binding_record(binding_id_value, row)
+            size = self._execute(
+                query(self.dialect, "artifact_evidence_size.get.sql"),
+                {"digest": record.artifact_digest},
+            ).fetchone()
+            record = replace(
+                record,
+                references=self._binding_references(binding_id_value),
+                byte_size=size[0] if size else None,
+            )
             self.conn.execute("COMMIT")
             return record
         except Exception as error:
@@ -694,40 +723,19 @@ class Store:
                 f"storage binding read: {_error_detail(error)}{rollback_error}"
             ) from None
 
-    def get_evidence(self, digest: str) -> EvidenceRecord:
-        """Return byte_size and reference for a digest; never the bytes."""
-        self._idle()
-        if not isinstance(digest, str) or not DIGEST_PATTERN.fullmatch(digest):
-            raise IngestError("artifact evidence not found")
-        self._begin()
-        try:
-            row = self._execute(
-                query(self.dialect, "artifact_evidence.get.sql"), {"digest": digest}
-            ).fetchone()
-            self.conn.execute("COMMIT")
-        except Exception as error:
-            rollback_error = self._rollback()
-            raise IngestError(
-                f"storage evidence read: {_error_detail(error)}{rollback_error}"
-            ) from None
-        if row is None:
-            raise IngestError("artifact evidence not found")
-        byte_size, reference = row[0], row[1]
-        return EvidenceRecord(digest=digest, byte_size=byte_size, reference=reference)
-
     def ingest(
         self,
         artifact: str,
         payload: bytes,
         binding: Binding | None = None,
-        reference: str | None = None,
+        references: Sequence[str] = (),
     ) -> IngestResult:
         """Validate exact bytes, bind context, and project atomically, or write nothing.
 
-        ``reference`` is advisory: where the caller already wrote these bytes
-        (a path or URI in its own object store). Storage never fetches it and
-        never verifies it against the digest; it is recorded once, on first
-        ingest of this digest, and is not updated on a later call.
+        ``references`` are where the caller already wrote these exact bytes
+        (a path or URI in its own store). Storage records them against this
+        binding and never fetches, parses, or verifies them. A retry may add
+        references to an existing binding; none is ever removed.
         """
         self._idle(artifact, payload)
         binding = binding or Binding()
@@ -741,6 +749,7 @@ class Store:
             document = json.loads(payload, parse_constant=_reject_constant)
             validator.validate(document)
             self._validate_binding(artifact, binding)
+            locations = _references(references)
         except Exception as error:
             label = artifact if validator is not None else "<unknown>"
             raise IngestError(
@@ -762,6 +771,8 @@ class Store:
             existing = self._binding_row(binding_id_value)
             if existing is not None:
                 self._require_same_binding(binding_id_value, artifact, digest, binding, existing)
+                context = f"artifact {artifact}, table artifact_location"
+                self._register_locations(binding_id_value, locations)
                 self.conn.execute("COMMIT")
                 return IngestResult(digest, binding_id_value, already_bound=True)
             if binding.supersedes_binding_id is not None:
@@ -774,7 +785,6 @@ class Store:
                     "digest": digest,
                     "byte_size": len(payload),
                     "first_ingested_at": datetime.now(UTC).isoformat(),
-                    "reference": reference,
                 },
             )
             context = f"artifact {artifact}, table artifact_binding"
@@ -784,6 +794,7 @@ class Store:
                     "binding_id": binding_id_value,
                     "artifact_digest": digest,
                     "artifact_name": artifact,
+                    "artifact_role": binding.role,
                     "scope_id": binding.scope_id,
                     "subject_id": binding.subject_id,
                     "run_id": binding.run_id,
@@ -792,6 +803,8 @@ class Store:
                     "bound_at": datetime.now(UTC).isoformat(),
                 },
             )
+            context = f"artifact {artifact}, table artifact_location"
+            self._register_locations(binding_id_value, locations)
             projection = storage_profiles()[artifact].get("projection")
             if projection is not None:
                 context = f"artifact {artifact}, table {projection}"
@@ -1060,10 +1073,14 @@ class Store:
         if binding.scope_id == "":
             raise IngestError("scope_id: required value missing")
         _identifier_bytes("scope_id", binding.scope_id)
-        for field in ("subject_id", "run_id", "layer_id", "supersedes_binding_id"):
+        for field in ("subject_id", "run_id", "layer_id", "supersedes_binding_id", "role"):
             value = getattr(binding, field)
             if value is not None:
                 _identifier_bytes(field, value)
+        roles = storage_profiles()[artifact].get("roles", [])
+        if binding.role is not None and binding.role not in roles:
+            allowed = ", ".join(roles) if roles else "none"
+            raise IngestError(f"role: {binding.role!r} not allowed for {artifact} ({allowed})")
         for field in storage_profiles()[artifact]["required"]:
             if getattr(binding, field) is None:
                 raise IngestError(f"{field}: required value missing")
@@ -1073,14 +1090,32 @@ class Store:
             query(self.dialect, "artifact_binding.get.sql"), {"binding_id": binding_id_value}
         ).fetchone()
 
+    def _binding_references(self, binding_id_value: str) -> tuple[str, ...]:
+        rows = self._execute(
+            query(self.dialect, "artifact_location.get.sql"), {"binding_id": binding_id_value}
+        ).fetchall()
+        return tuple(row[0] for row in rows)
+
+    def _register_locations(self, binding_id_value: str, locations: tuple[str, ...]) -> None:
+        registered_at = datetime.now(UTC).isoformat()
+        for reference in locations:
+            self._execute(
+                query(self.dialect, "artifact_location.upsert.sql"),
+                {
+                    "binding_id": binding_id_value,
+                    "reference": reference,
+                    "registered_at": registered_at,
+                },
+            )
+
     @staticmethod
     def _binding_record(binding_id_value: str, row: tuple[Any, ...]) -> BindingRecord:
-        digest, name, scope, subject, run, layer, supersedes, bound_at = row
+        digest, name, scope, subject, run, layer, supersedes, bound_at, role = row
         return BindingRecord(
             binding_id_value,
             digest,
             name,
-            Binding(scope, subject, run, layer, supersedes),
+            Binding(scope, subject, run, layer, supersedes, role),
             str(bound_at),
         )
 
@@ -1114,6 +1149,7 @@ class Store:
             binding.subject_id,
             binding.run_id,
             binding.layer_id,
+            binding.role,
         )
         actual = (
             predecessor.artifact_name,
@@ -1121,6 +1157,7 @@ class Store:
             predecessor.binding.subject_id,
             predecessor.binding.run_id,
             predecessor.binding.layer_id,
+            predecessor.binding.role,
         )
         if actual != expected:
             raise IngestError("superseded artifact binding context mismatch")

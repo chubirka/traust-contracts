@@ -7,6 +7,7 @@ import json
 import logging
 import sqlite3
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -27,13 +28,14 @@ from storage_samples import (
     sample,
 )
 
-from traust_contracts.v1.storage import Binding, EvidenceRecord, IngestError, Store, binding_id
+from traust_contracts.v1.storage import Binding, IngestError, Store, binding_id
 from traust_contracts.v1.storage.sql import CONTRACT_VERSION, REVISION
 from traust_contracts.v1.storage.store import _threat_score
 
 TABLES = [
     "artifact_binding",
     "artifact_evidence",
+    "artifact_location",
     *sorted(set(PROJECTION_TABLES.values()) | ALL_SECONDARY_PROJECTION_TABLES),
 ]
 
@@ -170,32 +172,93 @@ def test_evidence_record_tracks_byte_size(store: Store) -> None:
     assert row[0] == len(payload)
 
 
-def test_reference_is_optional_and_round_trips(store: Store) -> None:
-    payload, _ = sample("vuln-findings")
-    result = store.ingest(
-        "vuln-findings", payload, run_binding(), reference="s3://bucket/report.json"
+def test_role_absent_keeps_v1_binding_identity() -> None:
+    digest = hashlib.sha256(b"").hexdigest()
+    present = Binding(subject_id="sci:inventory-item:42")
+    roled = Binding(subject_id="sci:inventory-item:42", role="baseline")
+    assert binding_id(digest, "triage", present) == (
+        "90933ec74bd66618428c4def90f4af4cb9a2ab60bc9bd24a20b64814ca2dba56"
     )
-    assert store.get_evidence(result.digest) == EvidenceRecord(
-        digest=result.digest, byte_size=len(payload), reference="s3://bucket/report.json"
+    assert binding_id(digest, "report", roled) == (
+        "d0da85a98aa803d79ba2fed07a8f991c706f2fbb44f3692cbd3ad8662961cb0b"
     )
 
 
-def test_reference_defaults_to_none(store: Store) -> None:
-    payload, _ = sample("vuln-findings")
-    result = store.ingest("vuln-findings", payload, run_binding())
-    assert store.get_evidence(result.digest).reference is None
+def test_baseline_and_cumulative_reports_are_distinct_bindings(store: Store) -> None:
+    payload, _ = sample("report")
+    baseline = store.ingest("report", payload, replace(run_binding(), role="baseline"))
+    cumulative = store.ingest("report", payload, replace(run_binding(), role="cumulative"))
+    assert baseline.digest == cumulative.digest
+    assert baseline.binding_id != cumulative.binding_id
+    assert store.get_binding(baseline.binding_id).binding.role == "baseline"
+    assert store.get_binding(cumulative.binding_id).binding.role == "cumulative"
+    assert store.conn.execute("SELECT count(*) FROM artifact_evidence").fetchone() == (1,)
 
 
-def test_reference_is_first_write_wins(store: Store) -> None:
+@pytest.mark.parametrize("name,role", [("report", "latest"), ("vuln-findings", "baseline")])
+def test_role_must_be_declared_by_profile(store: Store, name: str, role: str) -> None:
+    payload, _ = sample(name)
+    with pytest.raises(IngestError, match="role"):
+        store.ingest(name, payload, replace(run_binding(), role=role))
+    assert_empty(store)
+
+
+def test_supersession_must_keep_role(store: Store) -> None:
+    payload, _ = sample("report")
+    first = store.ingest("report", payload, replace(run_binding(), role="baseline"))
+    corrected = json.loads(payload)
+    corrected["remediation_roadmap"].append(dict(corrected["remediation_roadmap"][0]))
+    with pytest.raises(IngestError, match="context mismatch"):
+        store.ingest(
+            "report",
+            encode(corrected),
+            replace(run_binding(supersedes=first.binding_id), role="cumulative"),
+        )
+
+
+def test_references_attach_to_binding_and_round_trip(store: Store) -> None:
+    payload, _ = sample("report")
+    refs = ["s3://sci-reports/scans/42/7/report.json", "git+repo@abc123:findings/x.json"]
+    result = store.ingest("report", payload, run_binding(), references=refs)
+    assert store.get_binding(result.binding_id).references == tuple(sorted(refs))
+
+
+def test_get_binding_returns_byte_size(store: Store) -> None:
+    payload, _ = sample("report")
+    result = store.ingest("report", payload, run_binding())
+    record = store.get_binding(result.binding_id)
+    assert record.byte_size == len(payload)
+    assert record.artifact_digest == hashlib.sha256(payload).hexdigest()
+
+
+def test_references_stay_inside_their_binding(store: Store) -> None:
     payload, _ = sample("adr-registry")
-    first = store.ingest("adr-registry", payload, Binding(scope_id="a"), reference="file:///first")
-    store.ingest("adr-registry", payload, Binding(scope_id="b"), reference="file:///second")
-    assert store.get_evidence(first.digest).reference == "file:///first"
+    a = store.ingest("adr-registry", payload, Binding(scope_id="a"), references=["file:///a"])
+    b = store.ingest("adr-registry", payload, Binding(scope_id="b"))
+    assert a.digest == b.digest
+    assert store.get_binding(a.binding_id).references == ("file:///a",)
+    assert store.get_binding(b.binding_id).references == ()
 
 
-def test_get_evidence_unknown_digest_raises(store: Store) -> None:
-    with pytest.raises(IngestError, match="not found"):
-        store.get_evidence("0" * 64)
+def test_retry_adds_references_without_duplicates(store: Store) -> None:
+    payload, _ = sample("report")
+    first = store.ingest("report", payload, run_binding(), references=["s3://a/r.json"])
+    retry = store.ingest(
+        "report", payload, run_binding(), references=["s3://a/r.json", "s3://mirror/r.json"]
+    )
+    assert retry.already_bound
+    assert store.get_binding(first.binding_id).references == (
+        "s3://a/r.json",
+        "s3://mirror/r.json",
+    )
+
+
+@pytest.mark.parametrize("references", ["s3://bare-string", [""], ["bad\x00ref"], [1]])
+def test_references_are_validated_before_any_write(store: Store, references: Any) -> None:
+    payload, _ = sample("report")
+    with pytest.raises(IngestError, match="references"):
+        store.ingest("report", payload, run_binding(), references=references)
+    assert_empty(store)
 
 
 @pytest.mark.parametrize("name,missing", [("vuln-findings", "subject_id"), ("triage", "run_id")])
