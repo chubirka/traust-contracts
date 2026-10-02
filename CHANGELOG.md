@@ -2,6 +2,22 @@
 
 All notable changes to traust-contracts are documented here.
 
+## [0.48.0]
+
+### Added
+
+- `artifact_evidence` gains a nullable `reference` column: an optional,
+  caller-supplied pointer to where the exact bytes already live (a path or
+  URI in the caller's own object store). Storage never fetches or verifies
+  it — it's advisory, recorded once on first ingest of a digest, and left
+  alone on retry, same as the bytes it describes.
+- `Store.ingest()` accepts an optional `reference` argument.
+- `Store.get_evidence(digest)` returns an `EvidenceRecord(digest, byte_size,
+  reference)`. Metadata only; bytes are never retained or returned here.
+- New `artifact_evidence.get.sql` query (both dialects) backing
+  `get_evidence()`. Does not replace `artifact_evidence_size.get.sql`, which
+  the Go SDK's read path still uses as-is.
+
 ## [0.47.1]
 
 ### Changed

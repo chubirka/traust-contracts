@@ -147,8 +147,8 @@ projection retains generated save and smoke-test coverage.
 | Operation | Rule |
 |---|---|
 | Initialize | Fresh databases bootstrap with the package's storage metadata; mismatches require explicit migration. |
-| Save | Validate bytes, compute digest and byte size, acquire one digest lock on PostgreSQL, insert evidence record, insert binding, and write any projection in one transaction. Raw payload is not retained. |
-| Retry | The same binding is a no-op and returns `AlreadyBound`. Evidence-level deduplication stays private. |
+| Save | Validate bytes, compute digest and byte size, acquire one digest lock on PostgreSQL, insert evidence record, insert binding, and write any projection in one transaction. Raw payload is not retained. An optional caller-supplied `reference` (where the caller already wrote these bytes) is recorded on first ingest of a digest; storage never fetches or verifies it. |
+| Retry | The same binding is a no-op and returns `AlreadyBound`. Evidence-level deduplication stays private. `reference` is not updated on retry — first write wins, same as the bytes it describes. |
 | Correct | A new binding names `supersedes_binding_id`; clocks never determine correction order. |
 | Read binding | Select by binding ID; return binding record without a payload claim. |
 

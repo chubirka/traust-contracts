@@ -74,7 +74,7 @@ def main() -> int:
         "classDiagram",
         "  direction TB",
         "  class artifact_evidence {",
-        "    digest + byte_size",
+        "    digest + byte_size + reference",
         "    SHA-256 keyed, no payload",
         "  }",
         "  class artifact_binding {",

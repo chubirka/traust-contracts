@@ -322,6 +322,15 @@ class IngestResult:
     already_bound: bool = False
 
 
+@dataclass(frozen=True)
+class EvidenceRecord:
+    """Digest-keyed metadata only; bytes live in the caller's object store."""
+
+    digest: str
+    byte_size: int
+    reference: str | None
+
+
 class IngestError(ValueError):
     """Log-safe failure; original bytes require explicit access through payload."""
 
@@ -685,13 +694,41 @@ class Store:
                 f"storage binding read: {_error_detail(error)}{rollback_error}"
             ) from None
 
+    def get_evidence(self, digest: str) -> EvidenceRecord:
+        """Return byte_size and reference for a digest; never the bytes."""
+        self._idle()
+        if not isinstance(digest, str) or not DIGEST_PATTERN.fullmatch(digest):
+            raise IngestError("artifact evidence not found")
+        self._begin()
+        try:
+            row = self._execute(
+                query(self.dialect, "artifact_evidence.get.sql"), {"digest": digest}
+            ).fetchone()
+            self.conn.execute("COMMIT")
+        except Exception as error:
+            rollback_error = self._rollback()
+            raise IngestError(
+                f"storage evidence read: {_error_detail(error)}{rollback_error}"
+            ) from None
+        if row is None:
+            raise IngestError("artifact evidence not found")
+        byte_size, reference = row[0], row[1]
+        return EvidenceRecord(digest=digest, byte_size=byte_size, reference=reference)
+
     def ingest(
         self,
         artifact: str,
         payload: bytes,
         binding: Binding | None = None,
+        reference: str | None = None,
     ) -> IngestResult:
-        """Validate exact bytes, bind context, and project atomically, or write nothing."""
+        """Validate exact bytes, bind context, and project atomically, or write nothing.
+
+        ``reference`` is advisory: where the caller already wrote these bytes
+        (a path or URI in its own object store). Storage never fetches it and
+        never verifies it against the digest; it is recorded once, on first
+        ingest of this digest, and is not updated on a later call.
+        """
         self._idle(artifact, payload)
         binding = binding or Binding()
         validator = None
@@ -737,6 +774,7 @@ class Store:
                     "digest": digest,
                     "byte_size": len(payload),
                     "first_ingested_at": datetime.now(UTC).isoformat(),
+                    "reference": reference,
                 },
             )
             context = f"artifact {artifact}, table artifact_binding"

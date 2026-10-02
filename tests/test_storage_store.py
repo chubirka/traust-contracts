@@ -27,7 +27,7 @@ from storage_samples import (
     sample,
 )
 
-from traust_contracts.v1.storage import Binding, IngestError, Store, binding_id
+from traust_contracts.v1.storage import Binding, EvidenceRecord, IngestError, Store, binding_id
 from traust_contracts.v1.storage.sql import CONTRACT_VERSION, REVISION
 from traust_contracts.v1.storage.store import _threat_score
 
@@ -168,6 +168,34 @@ def test_evidence_record_tracks_byte_size(store: Store) -> None:
         "SELECT byte_size FROM artifact_evidence WHERE digest = ?", (result.digest,)
     ).fetchone()
     assert row[0] == len(payload)
+
+
+def test_reference_is_optional_and_round_trips(store: Store) -> None:
+    payload, _ = sample("vuln-findings")
+    result = store.ingest(
+        "vuln-findings", payload, run_binding(), reference="s3://bucket/report.json"
+    )
+    assert store.get_evidence(result.digest) == EvidenceRecord(
+        digest=result.digest, byte_size=len(payload), reference="s3://bucket/report.json"
+    )
+
+
+def test_reference_defaults_to_none(store: Store) -> None:
+    payload, _ = sample("vuln-findings")
+    result = store.ingest("vuln-findings", payload, run_binding())
+    assert store.get_evidence(result.digest).reference is None
+
+
+def test_reference_is_first_write_wins(store: Store) -> None:
+    payload, _ = sample("adr-registry")
+    first = store.ingest("adr-registry", payload, Binding(scope_id="a"), reference="file:///first")
+    store.ingest("adr-registry", payload, Binding(scope_id="b"), reference="file:///second")
+    assert store.get_evidence(first.digest).reference == "file:///first"
+
+
+def test_get_evidence_unknown_digest_raises(store: Store) -> None:
+    with pytest.raises(IngestError, match="not found"):
+        store.get_evidence("0" * 64)
 
 
 @pytest.mark.parametrize("name,missing", [("vuln-findings", "subject_id"), ("triage", "run_id")])
