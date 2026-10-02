@@ -5,6 +5,7 @@ SELECT artifact_digest,
        run_id,
        layer_id,
        supersedes_binding_id,
-       bound_at
+       bound_at,
+       artifact_role
 FROM artifact_binding
 WHERE binding_id = :binding_id;

@@ -52,6 +52,7 @@ broken.
 | `subject_id` | Optional stable analyzed target supplied by the host |
 | `run_id` | Optional execution/result occurrence supplied by the host |
 | `layer_id` | Optional Traust Ledger disposition-layer identity |
+| `role` | Optional lifecycle role within one context, from the artifact's `roles` in `profiles.json` |
 
 Storage treats caller identifiers as opaque UTF-8 strings. It rejects NUL
 because PostgreSQL `TEXT` cannot represent it. Storage does not parse or
@@ -71,6 +72,7 @@ sha256(
   optional(subject_id)
   optional(run_id)
   optional(layer_id)
+  [0x01 role 0x00]      -- only when role is present
 )
 
 optional(value):
@@ -79,7 +81,9 @@ optional(value):
 ```
 
 Fields are UTF-8 bytes without Unicode normalization. The presence marker
-distinguishes absent from present-empty values.
+distinguishes absent from present-empty values. `role` is trailing and
+present-only, so a binding without a role hashes exactly as it did before
+roles existed; every existing `binding_id` is unchanged.
 
 Golden vector:
 
@@ -92,6 +96,43 @@ run_id          = absent
 layer_id        = absent
 binding_id      = 90933ec74bd66618428c4def90f4af4cb9a2ab60bc9bd24a20b64814ca2dba56
 ```
+
+With a role (same digest, `artifact_name = report`, `role = baseline`):
+
+```text
+binding_id      = d0da85a98aa803d79ba2fed07a8f991c706f2fbb44f3692cbd3ad8662961cb0b
+```
+
+## Roles
+
+Some artifacts are legitimately bound more than once to the same context.
+A repo's plain audit and its disposition-aware findings-current restatement
+both validate as `report`, for the same subject and scanned commit. Without a
+role their bindings are indistinguishable. `profiles.json` declares the roles
+an artifact accepts; `report` accepts `baseline` and `cumulative`. A role is
+optional, rejected when the profile does not declare it, part of the binding
+identity, and must match across a supersession.
+
+## Artifact locations
+
+Storage does not keep artifact bytes or choose where they live. A caller that
+has already written the exact bytes somewhere registers that location as an
+opaque `reference` on the binding, so a consumer can look the bytes up or
+stream them to a user later.
+
+| Rule | Behavior |
+|---|---|
+| Keyed by | `(binding_id, reference)` — a location belongs to the context that wrote it; dedup of identical bytes across scopes stays private |
+| Many | One binding may register several references (mirrors, copies) |
+| Retry | Re-saving the same binding may add references; none is removed |
+| Content | Opaque UTF-8, never parsed, fetched, or verified by storage |
+
+A reference must resolve to **these exact bytes** for as long as the binding
+is read. A path into a mutable store (a git working tree, an overwritten
+object key) is not enough on its own: the next rescan replaces the bytes
+behind it. Pin it — a digest-addressed key, a commit (`git+<repo>@<sha>:<path>`),
+or an object version — so the consumer can still fetch the bytes later and
+check them against `artifact_digest`.
 
 ## The schema is the reference
 
@@ -148,9 +189,9 @@ projection retains generated save and smoke-test coverage.
 |---|---|
 | Initialize | Fresh databases bootstrap with the package's storage metadata; mismatches require explicit migration. |
 | Save | Validate bytes, compute digest and byte size, acquire one digest lock on PostgreSQL, insert evidence record, insert binding, and write any projection in one transaction. Raw payload is not retained. |
-| Retry | The same binding is a no-op and returns `AlreadyBound`. Evidence-level deduplication stays private. |
+| Retry | The same binding returns `AlreadyBound` and only registers any new references. Evidence-level deduplication stays private. |
 | Correct | A new binding names `supersedes_binding_id`; clocks never determine correction order. |
-| Read binding | Select by binding ID; return binding record without a payload claim. |
+| Read binding | Select by binding ID; return the binding record, its role, its registered references, and the evidence `byte_size`, without a payload claim. |
 
 `supersedes_binding_id` is a nullable soft reference. A successor must match its
 predecessor's scope, artifact name, subject, run, and layer context. One binding

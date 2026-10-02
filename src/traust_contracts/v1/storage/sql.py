@@ -54,6 +54,6 @@ def bootstrap_files(dialect: Dialect) -> list[Path]:
     return _bootstrap_files(
         storage_dir(),
         dialect,
-        first_tables=("artifact_evidence", "artifact_binding"),
+        first_tables=("artifact_evidence", "artifact_binding", "artifact_location"),
         view_order=VIEW_ORDER,
     )

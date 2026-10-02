@@ -19,6 +19,7 @@ from traust_contracts.v1.storage.sql import REVISION, bootstrap_files, bootstrap
 TABLES = {
     "artifact_evidence",
     "artifact_binding",
+    "artifact_location",
     "traust_storage_meta",
     *PROJECTION_TABLES.values(),
     *ALL_SECONDARY_PROJECTION_TABLES,
@@ -330,7 +331,7 @@ def test_storage_package_resources() -> None:
     assert (root / "profiles.json").is_file()
     for dialect in ["postgres", "sqlite"]:
         files = bootstrap_files(dialect)
-        expected_prefix = ["artifact_evidence.sql", "artifact_binding.sql"]
+        expected_prefix = ["artifact_evidence.sql", "artifact_binding.sql", "artifact_location.sql"]
         if dialect == "postgres":
             expected_prefix.insert(0, "namespace.sql")
         assert [path.name for path in files[: len(expected_prefix)]] == expected_prefix
@@ -341,6 +342,7 @@ def test_storage_package_resources() -> None:
         for entity in [
             "artifact_evidence",
             "artifact_binding",
+            "artifact_location",
             *PROJECTION_TABLES.values(),
         ]:
             assert (root / dialect / "queries" / f"{entity}.upsert.sql").is_file()

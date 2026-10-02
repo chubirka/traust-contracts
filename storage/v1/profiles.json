@@ -157,6 +157,10 @@
         "subject_id",
         "run_id"
       ],
+      "roles": [
+        "baseline",
+        "cumulative"
+      ],
       "projection": "report"
     },
     "risk-rating-methodology": {

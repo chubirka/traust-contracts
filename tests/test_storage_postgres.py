@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from threading import Barrier
 from typing import Any
 from uuid import uuid4
@@ -31,6 +32,7 @@ from traust_contracts.v1.storage.sql import REVISION
 TABLES = {
     "artifact_binding",
     "artifact_evidence",
+    "artifact_location",
     "traust_storage_meta",
     *PROJECTION_TABLES.values(),
     *ALL_SECONDARY_PROJECTION_TABLES,
@@ -192,6 +194,23 @@ def test_postgres_supersession_is_explicit(database: tuple[Any, str]) -> None:
         "SELECT binding_id FROM current_binding WHERE artifact_name='vuln-findings'"
     ).fetchall() == [(second.binding_id,)]
     conn.commit()
+
+
+def test_postgres_role_and_references_round_trip(database: tuple[Any, str]) -> None:
+    conn, _ = database
+    store = Store(conn)
+    store.init()
+    payload = sample("report")[0]
+    baseline = store.ingest(
+        "report", payload, replace(run_binding(), role="baseline"), references=["s3://b/base.json"]
+    )
+    cumulative = store.ingest("report", payload, replace(run_binding(), role="cumulative"))
+    assert baseline.binding_id != cumulative.binding_id
+    record = store.get_binding(baseline.binding_id)
+    assert record.binding.role == "baseline"
+    assert record.references == ("s3://b/base.json",)
+    assert record.byte_size == len(payload)
+    assert store.get_binding(cumulative.binding_id).references == ()
 
 
 def test_postgres_concurrent_same_binding(database: tuple[Any, str], postgres_dsn: str) -> None:

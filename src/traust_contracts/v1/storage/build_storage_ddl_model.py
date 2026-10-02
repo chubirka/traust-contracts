@@ -35,7 +35,7 @@ def main() -> int:
     tables, meta = load(storage_dir())
     out = args.out
 
-    core = ["artifact_binding", "artifact_evidence", "traust_storage_meta"]
+    core = ["artifact_binding", "artifact_evidence", "artifact_location", "traust_storage_meta"]
     profiles = meta["profiles"]
     primary_by_family = {n: p["projection"] for n, p in profiles.items() if p.get("projection")}
     primary = sorted(set(primary_by_family.values()))
